@@ -4,10 +4,12 @@ import { ArrowUpTrayIcon, PlusIcon } from '@heroicons/react/16/solid'
 const App = () => {
 
     const exportSQL = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e
         console.log("export sql")
     }
 
     const addTable = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e
         console.log("add table")
     }
 
