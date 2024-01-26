@@ -17,12 +17,14 @@ const App = () => {
         <div className=''>
             <div id="canvas" className='min-w-[100vw] min-h-[100vh]'>
                 <div id="action-bar" className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 h-[70px] bg-bgdark rounded-lg p-[5px]'>
-                    <button className='bg-bg rounded-lg h-[60px] w-[60px] fc' onClick={(e) => exportSQL(e)}>
-                        <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
-                    </button>
-                    <button className='bg-bg rounded-lg h-[60px] w-[60px] fc' onClick={(e) => addTable(e)}>
-                        <PlusIcon className='h-9 w-9 hover:text-main' />
-                    </button>
+                    <div className='flex flex-row'>
+                        <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={(e) => exportSQL(e)}>
+                            <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
+                        </button>
+                        <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={(e) => addTable(e)}>
+                            <PlusIcon className='h-9 w-9 hover:text-success' />
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
