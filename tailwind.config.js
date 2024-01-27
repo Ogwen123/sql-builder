@@ -9,8 +9,8 @@ export default {
       colors: {
         "bg": "#22272e",
         "bgdark": "#1c2128",
-        "main": "#f57c00",
-        "maindark": "#d66d02",
+        "main": "#4a148c",
+        "maindark": "#3e1275",
         "secondary": "#03a9f4",
         "secondarydark": "#0276aa",
         "success": "#27ea60",
