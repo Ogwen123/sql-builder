@@ -36,7 +36,9 @@ const App = () => {
     }
 
     const addTable = (e: React.MouseEvent<HTMLButtonElement>) => {
-
+        e
+        setTables(tables)// !remove
+        setShowEditTableDialog(showEditTableDialog)// !remove
     }
 
     return (
@@ -86,7 +88,7 @@ const App = () => {
                                         <button
                                             type="button"
                                             className="button mr-[5px]"
-                                            onClick={() => setShowNewTableDialog(false)}
+                                            onClick={(e) => addTable(e)}
                                         >
                                             Create
                                         </button>
@@ -113,7 +115,7 @@ const App = () => {
                         <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={(e) => exportSQL(e)}>
                             <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={(e) => setShowNewTableDialog(true)}>
+                        <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={() => setShowNewTableDialog(true)}>
                             <PlusIcon className='h-9 w-9 hover:text-success' />
                         </button>
                     </div>
