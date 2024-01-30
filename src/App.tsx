@@ -23,28 +23,63 @@ type Table = {
     fields: Field[]
 }
 
+type DraggingElement = {
+    id: string,
+    startX: number,
+    startY: number,
+}
+
 const App = () => {
 
-    const [tables, setTables] = React.useState<Table[]>()
+    const [tables, setTables] = React.useState<Table[]>([])
     const [showNewTableDialog, setShowNewTableDialog] = React.useState<boolean>(false)
     const [showEditTableDialog, setShowEditTableDialog] = React.useState<boolean>(false)
+    const [draggingElement, setDraggingElement] = React.useState<DraggingElement>()
 
+    React.useEffect(() => {
+        if (!draggingElement) return
+        document.addEventListener("mousemove", (e) => handleDrag(e))
+        document.addEventListener("mouseup", (e) => handleMouseUp(e))
+    }, [draggingElement])
+
+    // handle the dragging
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        e.preventDefault()
+        setDraggingElement({ id: e.currentTarget.id as string, startX: e.clientX, startY: e.clientY })
+    }
+
+    const handleDrag = (e: MouseEvent) => {
+        if (!draggingElement) return
+        e.preventDefault()
+        const elem = document.getElementById(draggingElement?.id!)
+        console.log(elem)
+        if (!elem) return
+        console.log("tf you mean")
+        elem.style.top = (elem.offsetTop - (draggingElement?.startY! - e.clientX)).toString()
+        elem.style.left = (elem.offsetLeft - (draggingElement?.startX! - e.clientX)).toString()
+
+    }
+
+    const handleMouseUp = (e: MouseEvent) => {
+        console.log("fghuidfhg")
+        setDraggingElement(undefined)
+        document.addEventListener("mousemove", () => { })
+        document.addEventListener("mouseup", () => { })
+    }
 
     const exportSQL = (e: React.MouseEvent<HTMLButtonElement>) => {
         e
         console.log("export sql")
     }
 
-    const addTable = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e
-        setTables(tables)// !remove
+    const addTable = () => {
+
+        setTables((prevTables) => ([...prevTables, { name: (document.getElementById("new-table-name") as HTMLInputElement).value, fields: [] }]))
         setShowEditTableDialog(showEditTableDialog)// !remove
     }
 
     return (
         <div className=''>
-
-
 
             <Transition appear show={showNewTableDialog} as={Fragment}>
                 <Dialog as="div" className="relative z-10" onClose={() => setShowNewTableDialog(false)}>
@@ -79,25 +114,33 @@ const App = () => {
                                         Create new table
                                     </Dialog.Title>
                                     <div className="mt-2">
-                                        <form>
-                                            <input className="form-input" placeholder='Name' />
+                                        <form onSubmit={(e) => {
+                                            e.preventDefault()
+                                            addTable()
+                                            setShowNewTableDialog(false)
+                                        }}>
+                                            <input className="form-input" placeholder='Name' id="new-table-name" />
                                         </form>
                                     </div>
 
                                     <div className="mt-4 flex flex-row">
                                         <button
                                             type="button"
-                                            className="button mr-[5px]"
-                                            onClick={(e) => addTable(e)}
-                                        >
-                                            Create
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="button bg-warning hover:bg-warningdark ml-[5px]"
+                                            className="button bg-warning hover:bg-warningdark mr-[5px]"
                                             onClick={() => setShowNewTableDialog(false)}
                                         >
                                             Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="button ml-[5px]"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                addTable()
+                                                setShowNewTableDialog(false)
+                                            }}
+                                        >
+                                            Create
                                         </button>
                                     </div>
                                 </Dialog.Panel>
@@ -107,10 +150,22 @@ const App = () => {
                 </Dialog>
             </Transition>
 
-
-
             <div id="canvas" className='min-w-[100vw] min-h-[100vh]'>
-                <div id="action-bar" className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 h-[70px] bg-bgdark rounded-lg p-[5px]'>
+                {
+                    tables.map((table, index) => {
+                        return (
+                            <div
+                                key={index}
+                                className='cursor-move absolute'
+                                onMouseDown={(e) => handleMouseDown(e)}
+                                id={"table-container-" + index}
+                            >
+                                {table.name}
+                            </div>
+                        )
+                    })
+                }
+                <div id="action-bar" className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 h-[74px] bg-bgdark rounded-lg p-[5px] border-solid border-[2px] border-main'>
                     <div className='flex flex-row'>
                         <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={(e) => exportSQL(e)}>
                             <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
@@ -121,7 +176,7 @@ const App = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
