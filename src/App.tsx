@@ -1,27 +1,18 @@
 import React, { Fragment } from 'react'
-import { ArrowUpTrayIcon, PlusIcon } from '@heroicons/react/16/solid'
+import {
+    ArrowUpTrayIcon,
+    PlusIcon,
+    ArrowDownTrayIcon,
+    ArrowUpOnSquareIcon,
+    AdjustmentsHorizontalIcon
+} from '@heroicons/react/20/solid'
 import { Transition, Dialog } from '@headlessui/react'
+import Draggable from 'react-draggable'
 
-type ForeignKeyLink = {
-    table: string,
-    field: string
-}
-
-type Field = {
-    name: string,
-    type: "INT" | "FLOAT" | "VARCHAR" | "CHAR" | "DATE" | "TEXT" | "BLOB"
-    length?: number,
-    key: "PRIMARY" | "FOREIGN" | "NONE",
-    foreignKey: ForeignKeyLink,
-    notNull: boolean,
-    unique: boolean,
-    default: string
-}
-
-type Table = {
-    name: string, // used as unique id
-    fields: Field[]
-}
+import { Table, Field, ForeignKeyLink } from './global/types'
+import Attributes from './components/Attributes'
+import NewTableDialog from './components/NewTableDialog'
+import EditTableDialog from './components/EditTableDialog'
 
 type DraggingElement = {
     id: string,
@@ -33,38 +24,33 @@ const App = () => {
 
     const [tables, setTables] = React.useState<Table[]>([])
     const [showNewTableDialog, setShowNewTableDialog] = React.useState<boolean>(false)
-    const [showEditTableDialog, setShowEditTableDialog] = React.useState<boolean>(false)
-    const [draggingElement, setDraggingElement] = React.useState<DraggingElement>()
+    const [showEditTableDialog, setShowEditTableDialog] = React.useState<string | undefined>()// put the name of the table to be edited
+    const [showEditFieldDialog, setShowEditFieldDialog] = React.useState<string>()// put names like this -> tablename.fieldname
 
     React.useEffect(() => {
-        if (!draggingElement) return
-        document.addEventListener("mousemove", (e) => handleDrag(e))
-        document.addEventListener("mouseup", (e) => handleMouseUp(e))
-    }, [draggingElement])
+        let rawSaved = localStorage.getItem("database_autosave")
+        console.log(rawSaved)
+        if (rawSaved) {
+            const saved = JSON.parse(rawSaved) as Table[]
+            setTables(saved)
+        }
+    }, [])
 
-    // handle the dragging
-    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-        e.preventDefault()
-        setDraggingElement({ id: e.currentTarget.id as string, startX: e.clientX, startY: e.clientY })
+    React.useEffect(() => {
+        if (tables.length === 0) return
+        autosave()
+    }, [tables])
+
+    const sortFields = (fields: Field[]) => {
+        const keys = ["PRIMARY", "FOREIGN", "NONE"]
+
+        return [...fields.sort((f1, f2) => {
+            return keys.indexOf(f1.key) > keys.indexOf(f2.key) ? 1 : keys.indexOf(f1.key) < keys.indexOf(f2.key) ? -1 : 0
+        })]
     }
 
-    const handleDrag = (e: MouseEvent) => {
-        if (!draggingElement) return
-        e.preventDefault()
-        const elem = document.getElementById(draggingElement?.id!)
-        console.log(elem)
-        if (!elem) return
-        console.log("tf you mean")
-        elem.style.top = (elem.offsetTop - (draggingElement?.startY! - e.clientX)).toString()
-        elem.style.left = (elem.offsetLeft - (draggingElement?.startX! - e.clientX)).toString()
-
-    }
-
-    const handleMouseUp = (e: MouseEvent) => {
-        console.log("fghuidfhg")
-        setDraggingElement(undefined)
-        document.addEventListener("mousemove", () => { })
-        document.addEventListener("mouseup", () => { })
+    const autosave = () => {
+        localStorage.setItem("database_autosave", JSON.stringify(tables))
     }
 
     const exportSQL = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -73,105 +59,96 @@ const App = () => {
     }
 
     const addTable = () => {
-
-        setTables((prevTables) => ([...prevTables, { name: (document.getElementById("new-table-name") as HTMLInputElement).value, fields: [] }]))
+        setTables((prevTables) => ([...prevTables, {
+            name: (document.getElementById("new-table-name") as HTMLInputElement).value,
+            fields: sortFields(
+                [
+                    {
+                        name: "test 1",
+                        type: "INT",
+                        key: "FOREIGN",
+                        notNull: false,
+                        unique: false,
+                        default: ""
+                    },
+                    {
+                        name: "test 2",
+                        type: "INT",
+                        key: "PRIMARY",
+                        notNull: false,
+                        unique: false,
+                        default: ""
+                    },
+                    {
+                        name: "test 3",
+                        type: "INT",
+                        key: "NONE",
+                        notNull: false,
+                        unique: false,
+                        default: ""
+                    },
+                    {
+                        name: "test 4",
+                        type: "INT",
+                        key: "FOREIGN",
+                        notNull: false,
+                        unique: false,
+                        default: ""
+                    }
+                ]
+            )
+        }]))
         setShowEditTableDialog(showEditTableDialog)// !remove
     }
 
     return (
         <div className=''>
 
-            <Transition appear show={showNewTableDialog} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={() => setShowNewTableDialog(false)}>
-                    <Transition.Child
-                        as={Fragment}
-                        enter="ease-out duration-300"
-                        enterFrom="opacity-0"
-                        enterTo="opacity-100"
-                        leave="ease-in duration-200"
-                        leaveFrom="opacity-100"
-                        leaveTo="opacity-0"
-                    >
-                        <div className="fixed inset-0 bg-black/25" />
-                    </Transition.Child>
+            <NewTableDialog showNewTableDialog={showNewTableDialog} setShowNewTableDialog={setShowNewTableDialog} addTable={addTable} />
+            <EditTableDialog showEditTableDialog={showEditTableDialog} setShowEditTableDialog={setShowEditTableDialog} setTables={setTables} />
 
-                    <div className="fixed inset-0 overflow-y-auto">
-                        <div className="flex min-h-full items-center justify-center p-4 text-center">
-                            <Transition.Child
-                                as={Fragment}
-                                enter="ease-out duration-300"
-                                enterFrom="opacity-0 scale-95"
-                                enterTo="opacity-100 scale-100"
-                                leave="ease-in duration-200"
-                                leaveFrom="opacity-100 scale-100"
-                                leaveTo="opacity-0 scale-95"
-                            >
-                                <Dialog.Panel className="w-full max-w-xl transform overflow-hidden rounded-2xl bg-bg p-6 text-left align-middle shadow-xl transition-all">
-                                    <Dialog.Title
-                                        as="h3"
-                                        className="text-lg font-medium leading-6 "
-                                    >
-                                        Create new table
-                                    </Dialog.Title>
-                                    <div className="mt-2">
-                                        <form onSubmit={(e) => {
-                                            e.preventDefault()
-                                            addTable()
-                                            setShowNewTableDialog(false)
-                                        }}>
-                                            <input className="form-input" placeholder='Name' id="new-table-name" />
-                                        </form>
-                                    </div>
-
-                                    <div className="mt-4 flex flex-row">
-                                        <button
-                                            type="button"
-                                            className="button bg-warning hover:bg-warningdark mr-[5px]"
-                                            onClick={() => setShowNewTableDialog(false)}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="button ml-[5px]"
-                                            onClick={(e) => {
-                                                e.preventDefault()
-                                                addTable()
-                                                setShowNewTableDialog(false)
-                                            }}
-                                        >
-                                            Create
-                                        </button>
-                                    </div>
-                                </Dialog.Panel>
-                            </Transition.Child>
-                        </div>
-                    </div>
-                </Dialog>
-            </Transition>
-
-            <div id="canvas" className='min-w-[100vw] min-h-[100vh]'>
+            <div id="canvas" className='w-[100vw] min-h-[100vh]'>
                 {
                     tables.map((table, index) => {
                         return (
-                            <div
+                            <Draggable
+                                handle='#name'
+                                bounds="#canvas"
                                 key={index}
-                                className='cursor-move absolute'
-                                onMouseDown={(e) => handleMouseDown(e)}
-                                id={"table-container-" + index}
                             >
-                                {table.name}
-                            </div>
+                                <div className='w-[300px] inline-block bg-bgdark'>
+                                    <div id="name" className='fc cursor-move bg-green-700 border-solid border-[2px] border-green-900 rounded-t-md'>
+                                        {table.name}
+                                        <button onClick={(e) => {
+                                            setShowEditTableDialog(table.name)
+                                            console.log(table.name)
+                                        }}>
+                                            <AdjustmentsHorizontalIcon className='h-4 2-4 ml-[10px]' />
+                                        </button>
+                                    </div>
+                                    <Attributes fields={table.fields} />
+                                </div>
+                            </Draggable>
                         )
                     })
                 }
-                <div id="action-bar" className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 h-[74px] bg-bgdark rounded-lg p-[5px] border-solid border-[2px] border-main'>
-                    <div className='flex flex-row'>
-                        <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={(e) => exportSQL(e)}>
-                            <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
+                <div
+                    id="action-bar"
+                    className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 bg-bgdark rounded-lg p-[5px] border-solid border-[2px] border-main'
+                    style={{ height: "8%" }}
+                >
+                    <div className='flex flex-row h-full w-full'>
+                        <button className='action-button' onClick={(e) => exportSQL(e)} title="Export as SQL">
+                            <ArrowUpOnSquareIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='bg-bg rounded-lg h-[60px] w-[60px] fc mr-[10px]' onClick={() => setShowNewTableDialog(true)}>
-                            <PlusIcon className='h-9 w-9 hover:text-success' />
+                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New Table">
+                            <PlusIcon className='h-9 w-9 hover:text-main' />
+                        </button>
+                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="Save Database">
+                            <ArrowDownTrayIcon className='h-9 w-9 hover:text-main' />
+                        </button>
+                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="Load Database">
+                            <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
                         </button>
                     </div>
                 </div>

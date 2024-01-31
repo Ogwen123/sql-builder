@@ -15,6 +15,7 @@ export default {
         "secondarydark": "#0276aa",
         "success": "#27ea60",
         "error": "#c0392b",
+        "errordark": "#9c2e22",
         "warning": "#e67e22",
         "warningdark": "#ab5e1a",
         "hr": "#444c56",
