@@ -1,19 +1,17 @@
 import { Transition, Dialog } from '@headlessui/react'
 import React, { Fragment } from 'react'
-import { Alert_t } from '../global/types'
-import Alert from './Alert'
+import { Field } from '../global/types'
 
-interface NewTableDialogProps {
-    showNewTableDialog: boolean,
-    setShowNewTableDialog: React.Dispatch<React.SetStateAction<boolean>>
-    addTable: () => void,
-    error: Alert_t
+interface AddFieldDialogProps {
+    showAddFieldDialog: string | undefined,
+    setShowAddFieldDialog: React.Dispatch<React.SetStateAction<string | undefined>>
+    addField: (tableName: string, fieldData?: Field) => void
 }
 
-const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, error }: NewTableDialogProps) => {
+const AddFieldDialog = ({ showAddFieldDialog, setShowAddFieldDialog, addField }: AddFieldDialogProps) => {
     return (
-        <Transition appear show={showNewTableDialog} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={() => { if (error[0] === false) setShowNewTableDialog(false) }}>
+        <Transition appear show={showAddFieldDialog !== undefined} as={Fragment}>
+            <Dialog as="div" className="relative z-10" onClose={() => setShowAddFieldDialog(undefined)}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-300"
@@ -38,19 +36,17 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
                             leaveTo="opacity-0 scale-95"
                         >
                             <Dialog.Panel className="w-full max-w-xl transform overflow-hidden rounded-2xl bg-bg p-6 text-left align-middle shadow-xl transition-all">
-                                <Alert show={error[0]} message={error[2]} severity={error[1]} />
                                 <Dialog.Title
                                     as="h3"
                                     className="text-lg font-medium leading-6 "
                                 >
-                                    Create new table
+                                    Create new field in
                                 </Dialog.Title>
                                 <div className="mt-2">
                                     <form onSubmit={(e) => {
                                         e.preventDefault()
-                                        addTable()
-                                        console.log(error[0])
-                                        if (error[0] === false) setShowNewTableDialog(false)
+                                        addField(showAddFieldDialog!)
+                                        setShowAddFieldDialog(undefined)
                                     }}>
                                         <input className="form-input" placeholder='Name' id="new-table-name" />
                                     </form>
@@ -60,7 +56,7 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
                                     <button
                                         type="button"
                                         className="button bg-warning hover:bg-warningdark mr-[5px]"
-                                        onClick={() => setShowNewTableDialog(false)}
+                                        onClick={() => setShowAddFieldDialog(undefined)}
                                     >
                                         Cancel
                                     </button>
@@ -69,9 +65,8 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
                                         className="button ml-[5px]"
                                         onClick={(e) => {
                                             e.preventDefault()
-                                            addTable()
-                                            console.log("huh" + error[0])
-                                            if (error[0] === false) setShowNewTableDialog(false)
+                                            addField(showAddFieldDialog!)
+                                            setShowAddFieldDialog(undefined)
                                         }}
                                     >
                                         Create
@@ -86,4 +81,4 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
     )
 }
 
-export default NewTableDialog
+export default AddFieldDialog

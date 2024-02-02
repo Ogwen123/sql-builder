@@ -9,10 +9,12 @@ import {
 import { Transition, Dialog } from '@headlessui/react'
 import Draggable from 'react-draggable'
 
-import { Table, Field, ForeignKeyLink } from './global/types'
+import { Table, Field, ForeignKeyLink, Alert_t } from './global/types'
 import Attributes from './components/Attributes'
 import NewTableDialog from './components/NewTableDialog'
 import EditTableDialog from './components/EditTableDialog'
+import AddFieldDialog from './components/AddFieldDialog'
+import config from "../config.json"
 
 type DraggingElement = {
     id: string,
@@ -24,8 +26,10 @@ const App = () => {
 
     const [tables, setTables] = React.useState<Table[]>([])
     const [showNewTableDialog, setShowNewTableDialog] = React.useState<boolean>(false)
+    const [newTableError, setNewTableError] = React.useState<Alert_t>([false, "", ""])
     const [showEditTableDialog, setShowEditTableDialog] = React.useState<string | undefined>()// put the name of the table to be edited
-    const [showEditFieldDialog, setShowEditFieldDialog] = React.useState<string>()// put names like this -> tablename.fieldname
+    const [showAddFieldDialog, setShowAddFieldDialog] = React.useState<string | undefined>()// put the name of the table that the field is being added to
+    const [showEditFieldDialog, setShowEditFieldDialog] = React.useState<string | undefined>()// put names like this -> tablename.fieldname
 
     React.useEffect(() => {
         let rawSaved = localStorage.getItem("database_autosave")
@@ -40,6 +44,10 @@ const App = () => {
         if (tables.length === 0) return
         autosave()
     }, [tables])
+
+    React.useEffect(() => {
+        console.log(newTableError)
+    }, [newTableError])
 
     const sortFields = (fields: Field[]) => {
         const keys = ["PRIMARY", "FOREIGN", "NONE"]
@@ -59,8 +67,18 @@ const App = () => {
     }
 
     const addTable = () => {
+        const name = (document.getElementById("new-table-name") as HTMLInputElement).value
+        for (let i of tables) {
+            if (i.name === name) {
+                setNewTableError([true, "ERROR", "There is already a table with this name."])
+                setTimeout(() => {
+                    setNewTableError([false, "", ""])
+                }, config.defaultAlertLength)
+                return
+            }
+        }
         setTables((prevTables) => ([...prevTables, {
-            name: (document.getElementById("new-table-name") as HTMLInputElement).value,
+            name: name,
             fields: sortFields(
                 [
                     {
@@ -98,14 +116,26 @@ const App = () => {
                 ]
             )
         }]))
-        setShowEditTableDialog(showEditTableDialog)// !remove
+
+    }
+
+    const addField = (tableName: string, fieldData?: Field) => { // remove question mark
+        const copy = tables
+        for (let i in copy) {
+            const table = copy[i]
+            if (table.name === tableName) {
+                table.fields.push(fieldData!) // remove !
+            }
+        }
+        setTables(copy)
     }
 
     return (
         <div className=''>
 
-            <NewTableDialog showNewTableDialog={showNewTableDialog} setShowNewTableDialog={setShowNewTableDialog} addTable={addTable} />
+            <NewTableDialog showNewTableDialog={showNewTableDialog} setShowNewTableDialog={setShowNewTableDialog} addTable={addTable} error={newTableError} />
             <EditTableDialog showEditTableDialog={showEditTableDialog} setShowEditTableDialog={setShowEditTableDialog} setTables={setTables} />
+            <AddFieldDialog showAddFieldDialog={showAddFieldDialog} setShowAddFieldDialog={setShowAddFieldDialog} addField={addField} />
 
             <div id="canvas" className='w-[100vw] min-h-[100vh]'>
                 {
@@ -119,9 +149,8 @@ const App = () => {
                                 <div className='w-[300px] inline-block bg-bgdark'>
                                     <div id="name" className='fc cursor-move bg-green-700 border-solid border-[2px] border-green-900 rounded-t-md'>
                                         {table.name}
-                                        <button onClick={(e) => {
+                                        <button onClick={() => {
                                             setShowEditTableDialog(table.name)
-                                            console.log(table.name)
                                         }}>
                                             <AdjustmentsHorizontalIcon className='h-4 2-4 ml-[10px]' />
                                         </button>
