@@ -2,6 +2,8 @@ import { Transition, Dialog } from '@headlessui/react'
 import React, { Fragment } from 'react'
 import { Field, Table } from '../global/types'
 
+import { PlusIcon } from '@heroicons/react/20/solid'
+
 interface EditTableDialogProps {
     showEditTableDialog: string | undefined,
     setShowEditTableDialog: React.Dispatch<React.SetStateAction<string | undefined>>
@@ -80,12 +82,13 @@ const EditTableDialog = ({ showEditTableDialog, setShowEditTableDialog, table, s
                                             <div className='flex flex-row h-[calc(100%-236px)]'>
                                                 <div className='w-1/5 mr-[10px]'>
                                                     <button
-                                                        className='w-full bg-bgdark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-bgdark hover:border-main'
+                                                        className='w-full bg-main rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-main fc flex-row'
                                                         onClick={() => {
                                                             addField()
                                                         }}
                                                     >
                                                         Add new field
+                                                        <PlusIcon className='h-6 w-6 ml-[10px]' />
                                                     </button>
                                                     {
                                                         table.fields.map((val, index) => {

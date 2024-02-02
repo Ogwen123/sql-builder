@@ -8,13 +8,13 @@ interface AttributesProps {
 
 const Attributes = ({ fields }: AttributesProps) => {
     return (
-        <div className='rounded-b-md w-[300px]'>
+        <div className='w-[300px] '>
             {
                 fields.map((val, index) => {
                     let classname = "fc w-1/6 border-solid border-[2px]"
                     if (val.key === "PRIMARY") {
                         return (
-                            <div key={index} className="flex flex-row w-[300px]">
+                            <div key={index} className={"flex flex-row w-[300px]"}>
                                 <div className={classname + " bg-blue-700 border-blue-900"}>
                                     PK
                                 </div>
@@ -26,7 +26,7 @@ const Attributes = ({ fields }: AttributesProps) => {
                     }
                     else if (val.key === "FOREIGN") {
                         return (
-                            <div key={index} className="flex flex-row w-[300px]">
+                            <div key={index} className={"flex flex-row w-[300px]"}>
                                 <div className={classname + " bg-purple-700 border-purple-900"}>
                                     FK
                                 </div>
@@ -38,8 +38,8 @@ const Attributes = ({ fields }: AttributesProps) => {
                     }
                     else {
                         return (
-                            <div key={index} className="flex flex-row w-[300px]">
-                                <div className='fc w-full px-[5px] border-solid border-[2px] border-bgdark'>
+                            <div key={index} className={"flex flex-row w-[300px]"}>
+                                <div className={'fc w-full px-[5px] border-solid border-[2px] border-bgdark'}>
                                     {val.name}
                                 </div>
                             </div>

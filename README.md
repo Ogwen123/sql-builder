@@ -4,4 +4,4 @@
  - [ ] load database
  - [ ] add field
  - [ ] edit and delete field
- - [ ] edit and delete table
+ - [x] edit and delete table

@@ -136,8 +136,9 @@ const App = () => {
                                 handle='#name'
                                 bounds="#canvas"
                                 key={index}
+                                defaultClassName='rounded-b-md overflow-hidden'
                             >
-                                <div className='w-[300px] inline-block bg-bgdark'>
+                                <div className='w-[300px] inline-block bg-bgdark rounded-md'>
                                     <div id="name" className='fc cursor-move bg-green-700 border-solid border-[2px] border-green-900 rounded-t-md'>
                                         {table.name}
                                         <button onClick={() => {
