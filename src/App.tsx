@@ -66,7 +66,7 @@ const App = () => {
         console.log("export sql")
     }
 
-    const addTable = () => {
+    const addTable = (): boolean => {
         const name = (document.getElementById("new-table-name") as HTMLInputElement).value
         for (let i of tables) {
             if (i.name === name) {
@@ -74,7 +74,7 @@ const App = () => {
                 setTimeout(() => {
                     setNewTableError([false, "", ""])
                 }, config.defaultAlertLength)
-                return
+                return false
             }
         }
         setTables((prevTables) => ([...prevTables, {
@@ -116,7 +116,7 @@ const App = () => {
                 ]
             )
         }]))
-
+        return true
     }
 
     const addField = (tableName: string, fieldData?: Field) => { // remove question mark

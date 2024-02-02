@@ -6,7 +6,7 @@ import Alert from './Alert'
 interface NewTableDialogProps {
     showNewTableDialog: boolean,
     setShowNewTableDialog: React.Dispatch<React.SetStateAction<boolean>>
-    addTable: () => void,
+    addTable: () => boolean,
     error: Alert_t
 }
 
@@ -48,9 +48,8 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
                                 <div className="mt-2">
                                     <form onSubmit={(e) => {
                                         e.preventDefault()
-                                        addTable()
-                                        console.log(error[0])
-                                        if (error[0] === false) setShowNewTableDialog(false)
+                                        const res = addTable()
+                                        if (res === false) setShowNewTableDialog(false)
                                     }}>
                                         <input className="form-input" placeholder='Name' id="new-table-name" />
                                     </form>
@@ -69,9 +68,8 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
                                         className="button ml-[5px]"
                                         onClick={(e) => {
                                             e.preventDefault()
-                                            addTable()
-                                            console.log("huh" + error[0])
-                                            if (error[0] === false) setShowNewTableDialog(false)
+                                            const res = addTable()
+                                            if (res === false) setShowNewTableDialog(false)
                                         }}
                                     >
                                         Create
