@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import {
     ArrowUpTrayIcon,
     PlusIcon,
@@ -6,21 +6,13 @@ import {
     ArrowUpOnSquareIcon,
     AdjustmentsHorizontalIcon
 } from '@heroicons/react/20/solid'
-import { Transition, Dialog } from '@headlessui/react'
 import Draggable from 'react-draggable'
 
-import { Table, Field, ForeignKeyLink, Alert_t } from './global/types'
+import { Table, Field, Alert_t } from './global/types'
 import Attributes from './components/Attributes'
 import NewTableDialog from './components/NewTableDialog'
 import EditTableDialog from './components/EditTableDialog'
-import AddFieldDialog from './components/AddFieldDialog'
 import config from "../config.json"
-
-type DraggingElement = {
-    id: string,
-    startX: number,
-    startY: number,
-}
 
 const App = () => {
 
@@ -28,12 +20,9 @@ const App = () => {
     const [showNewTableDialog, setShowNewTableDialog] = React.useState<boolean>(false)
     const [newTableError, setNewTableError] = React.useState<Alert_t>([false, "", ""])
     const [showEditTableDialog, setShowEditTableDialog] = React.useState<string | undefined>()// put the name of the table to be edited
-    const [showAddFieldDialog, setShowAddFieldDialog] = React.useState<string | undefined>()// put the name of the table that the field is being added to
-    const [showEditFieldDialog, setShowEditFieldDialog] = React.useState<string | undefined>()// put names like this -> tablename.fieldname
 
     React.useEffect(() => {
         let rawSaved = localStorage.getItem("database_autosave")
-        console.log(rawSaved)
         if (rawSaved) {
             const saved = JSON.parse(rawSaved) as Table[]
             setTables(saved)
@@ -45,9 +34,9 @@ const App = () => {
         autosave()
     }, [tables])
 
-    React.useEffect(() => {
-        console.log(newTableError)
-    }, [newTableError])
+    //React.useEffect(() => {
+    //    console.log(newTableError)
+    //}, [newTableError])
 
     const sortFields = (fields: Field[]) => {
         const keys = ["PRIMARY", "FOREIGN", "NONE"]
@@ -68,6 +57,13 @@ const App = () => {
 
     const addTable = (): boolean => {
         const name = (document.getElementById("new-table-name") as HTMLInputElement).value
+        if (name === "") {
+            setNewTableError([true, "ERROR", "Enter a name for the table."])
+            setTimeout(() => {
+                setNewTableError([false, "", ""])
+            }, config.defaultAlertLength)
+            return false
+        }
         for (let i of tables) {
             if (i.name === name) {
                 setNewTableError([true, "ERROR", "There is already a table with this name."])
@@ -119,23 +115,18 @@ const App = () => {
         return true
     }
 
-    const addField = (tableName: string, fieldData?: Field) => { // remove question mark
-        const copy = tables
-        for (let i in copy) {
-            const table = copy[i]
-            if (table.name === tableName) {
-                table.fields.push(fieldData!) // remove !
-            }
+    const getTable = (name: string) => {
+        for (let i of tables) {
+            if (i.name === name) return i
         }
-        setTables(copy)
+        return false
     }
 
     return (
         <div className=''>
 
             <NewTableDialog showNewTableDialog={showNewTableDialog} setShowNewTableDialog={setShowNewTableDialog} addTable={addTable} error={newTableError} />
-            <EditTableDialog showEditTableDialog={showEditTableDialog} setShowEditTableDialog={setShowEditTableDialog} setTables={setTables} />
-            <AddFieldDialog showAddFieldDialog={showAddFieldDialog} setShowAddFieldDialog={setShowAddFieldDialog} addField={addField} />
+            <EditTableDialog showEditTableDialog={showEditTableDialog} setShowEditTableDialog={setShowEditTableDialog} table={getTable(showEditTableDialog!) !== false ? getTable(showEditTableDialog!) as Table : {} as Table} setTables={setTables} />
 
             <div id="canvas" className='w-[100vw] min-h-[100vh]'>
                 {

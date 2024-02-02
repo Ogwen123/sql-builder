@@ -13,7 +13,7 @@ interface NewTableDialogProps {
 const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, error }: NewTableDialogProps) => {
     return (
         <Transition appear show={showNewTableDialog} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={() => { if (error[0] === false) setShowNewTableDialog(false) }}>
+            <Dialog as="div" className="relative z-10" onClose={() => { setShowNewTableDialog(false) }}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-300"
@@ -49,7 +49,7 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
                                     <form onSubmit={(e) => {
                                         e.preventDefault()
                                         const res = addTable()
-                                        if (res === false) setShowNewTableDialog(false)
+                                        if (res === true) setShowNewTableDialog(false)
                                     }}>
                                         <input className="form-input" placeholder='Name' id="new-table-name" />
                                     </form>
@@ -69,7 +69,8 @@ const NewTableDialog = ({ showNewTableDialog, setShowNewTableDialog, addTable, e
                                         onClick={(e) => {
                                             e.preventDefault()
                                             const res = addTable()
-                                            if (res === false) setShowNewTableDialog(false)
+                                            console.log("res: " + res)
+                                            if (res === true) setShowNewTableDialog(false)
                                         }}
                                     >
                                         Create
