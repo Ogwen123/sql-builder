@@ -115,18 +115,31 @@ const App = () => {
         return true
     }
 
-    const getTable = (name: string) => {
-        for (let i of tables) {
-            if (i.name === name) return i
-        }
-        return false
+    const databaseSaveAs = () => {
+        console.log("save as")
+    }
+
+    const databaseLoad = () => {
+        console.log("load")
     }
 
     return (
         <div className=''>
 
-            <NewTableDialog showNewTableDialog={showNewTableDialog} setShowNewTableDialog={setShowNewTableDialog} addTable={addTable} error={newTableError} />
-            <EditTableDialog showEditTableDialog={showEditTableDialog} setShowEditTableDialog={setShowEditTableDialog} table={getTable(showEditTableDialog!) !== false ? getTable(showEditTableDialog!) as Table : {} as Table} setTables={setTables} />
+            <NewTableDialog
+                showNewTableDialog={showNewTableDialog}
+                setShowNewTableDialog={setShowNewTableDialog}
+                addTable={addTable}
+                error={newTableError}
+            />
+            {showEditTableDialog &&
+                <EditTableDialog
+                    setShowEditTableDialog={setShowEditTableDialog}
+                    table={showEditTableDialog!}
+                    setTables={setTables}
+                    tables={tables}
+                />
+            }
 
             <div id="canvas" className='w-[100vw] min-h-[100vh]'>
                 {
@@ -165,10 +178,10 @@ const App = () => {
                         <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New Table">
                             <PlusIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="Save Database">
+                        <button className='action-button' onClick={() => databaseSaveAs()} title="Save Database">
                             <ArrowDownTrayIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="Load Database">
+                        <button className='action-button' onClick={() => databaseLoad()} title="Load Database">
                             <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
                         </button>
                     </div>

@@ -5,37 +5,77 @@ import { Field, Table } from '../global/types'
 import { PlusIcon } from '@heroicons/react/20/solid'
 
 interface EditTableDialogProps {
-    showEditTableDialog: string | undefined,
     setShowEditTableDialog: React.Dispatch<React.SetStateAction<string | undefined>>
-    table: Table,
+    table: string,
+    tables: Table[]
     setTables: React.Dispatch<React.SetStateAction<Table[]>>
 }
 
-const EditTableDialog = ({ showEditTableDialog, setShowEditTableDialog, table, setTables }: EditTableDialogProps) => {
-    if (Object.keys(table).length === 0 && showEditTableDialog !== undefined) { console.log(showEditTableDialog); return (<div>uhh oh bad table name</div>) }
-
+const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: EditTableDialogProps) => {
     const [deleteButtonPressed, setDeleteButtonPressed] = React.useState<boolean>(false)
     const [selectedField, setSelectedField] = React.useState<Field>()
+    const [tableBuffer, setTableBuffer] = React.useState<Table>()
 
     React.useEffect(() => {
-        if (Object.keys(table).length === 0) return
+        if (!table) return
+        setTableBuffer(getTable(table))
+    }, [table])
 
-        setSelectedField(table.fields[0])
-    }, [showEditTableDialog])
+    React.useEffect(() => {
+        if (tableBuffer === undefined) return
+
+        setSelectedField(tableBuffer.fields[0])
+    }, [tableBuffer])
+
+    React.useEffect(() => {
+        console.log(table)
+    }, [table])
+
+    const getTable = (name: string): Table | undefined => {
+        for (let i of tables) {
+            if (i.name === name) return i
+        }
+        return undefined
+    }
 
     const editTable = () => {
 
     }
 
     const addField = () => {
+        if (!tableBuffer) return
+        let field: Field;
+
+        const regex = new RegExp("New Field [\d]{0,}")
+        let count = 0
+        for (let j of tableBuffer.fields) {
+            if (regex.test(j.name)) {
+                count += 1
+            }
+        }
+        field = {
+            name: `New Field ${count === 0 ? "" : count}`,
+            type: "INT",
+            key: "NONE",
+            notNull: false,
+            unique: false,
+            default: ""
+        }
+        tableBuffer.fields.push(field)
+
+        if (field! === undefined) return
+        setSelectedField(field)
+    }
+
+    const editField = () => {
 
     }
 
     return (
         <div>
             {
-                Object.keys(table).length > 0 && showEditTableDialog !== undefined ?
-                    <Transition appear show={showEditTableDialog !== undefined} as={Fragment}>
+                tableBuffer !== undefined ?
+                    <Transition appear show={table !== undefined} as={Fragment}>
                         <Dialog as="div" className="relative z-10" onClose={() => setShowEditTableDialog(undefined)}>
                             <Transition.Child
                                 as={Fragment}
@@ -66,7 +106,7 @@ const EditTableDialog = ({ showEditTableDialog, setShowEditTableDialog, table, s
                                                     as="h3"
                                                     className="text-lg font-medium leading-6 h-[24px]"
                                                 >
-                                                    Edit table {showEditTableDialog}
+                                                    Edit table {table}
                                                 </Dialog.Title>
                                                 <div className="mt-2">
                                                     <form onSubmit={(e) => {
@@ -74,15 +114,15 @@ const EditTableDialog = ({ showEditTableDialog, setShowEditTableDialog, table, s
                                                         editTable()
                                                         setShowEditTableDialog(undefined)
                                                     }}>
-                                                        <input className="form-input" placeholder='Name' id="edit-table-name" defaultValue={showEditTableDialog} />
+                                                        <input className="form-input" placeholder='Name' id="edit-table-name" defaultValue={table} />
                                                     </form>
                                                 </div>
                                             </div>
                                             <div className='h-[2px] w-full bg-bg my-[10px]'></div>
                                             <div className='flex flex-row h-[calc(100%-236px)]'>
-                                                <div className='w-1/5 mr-[10px]'>
+                                                <div className='w-1/5 mr-[10px] overflow-y-scroll'>
                                                     <button
-                                                        className='w-full bg-main rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-main fc flex-row'
+                                                        className='w-full bg-main hover:bg-maindark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-main hover:border-maindark fc flex-row'
                                                         onClick={() => {
                                                             addField()
                                                         }}
@@ -91,9 +131,15 @@ const EditTableDialog = ({ showEditTableDialog, setShowEditTableDialog, table, s
                                                         <PlusIcon className='h-6 w-6 ml-[10px]' />
                                                     </button>
                                                     {
-                                                        table.fields.map((val, index) => {
+                                                        tableBuffer.fields.map((val, index) => {
                                                             return (
-                                                                <button key={index} className='w-full bg-bgdark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-bgdark hover:border-main'>
+                                                                <button
+                                                                    key={index}
+                                                                    className='w-full bg-bgdark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-bgdark hover:border-main'
+                                                                    onClick={() => {
+                                                                        editField()
+                                                                    }}
+                                                                >
                                                                     {val.name}
                                                                 </button>
                                                             )
@@ -133,8 +179,9 @@ const EditTableDialog = ({ showEditTableDialog, setShowEditTableDialog, table, s
                                                     onClick={() => {
                                                         if (!deleteButtonPressed) setDeleteButtonPressed(true)
                                                         else {
-                                                            setTables((prevTables) => [...prevTables.filter((table) => table.name !== showEditTableDialog)])
+                                                            setTables((prevTables) => [...prevTables.filter((curTable) => curTable.name !== table)])
                                                             setShowEditTableDialog(undefined)
+                                                            setDeleteButtonPressed(false)
                                                         }
                                                     }}
                                                 >
