@@ -1,20 +1,24 @@
 import { Transition, Dialog } from '@headlessui/react'
 import React, { Fragment } from 'react'
-import { Field, Table } from '../global/types'
-
 import { PlusIcon } from '@heroicons/react/20/solid'
+
+import { Field, Table, Alert_t } from '../global/types'
+import Alert from './Alert'
+import config from "../../config.json"
 
 interface EditTableDialogProps {
     setShowEditTableDialog: React.Dispatch<React.SetStateAction<string | undefined>>
     table: string,
-    tables: Table[]
-    setTables: React.Dispatch<React.SetStateAction<Table[]>>
+    tables: Table[],
+    setTables: React.Dispatch<React.SetStateAction<Table[]>>,
+    removeTable: (name: string) => void
 }
 
-const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: EditTableDialogProps) => {
+const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, removeTable }: EditTableDialogProps) => {
     const [deleteButtonPressed, setDeleteButtonPressed] = React.useState<boolean>(false)
     const [selectedField, setSelectedField] = React.useState<Field>()
     const [tableBuffer, setTableBuffer] = React.useState<Table>()
+    const [alert, setAlert] = React.useState<Alert_t>([false, "", ""])
 
     React.useEffect(() => {
         if (!table) return
@@ -31,6 +35,10 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
         console.log(table)
     }, [table])
 
+    React.useEffect(() => {
+        console.log("changes")
+    }, [tables])
+
     const getTable = (name: string): Table | undefined => {
         for (let i of tables) {
             if (i.name === name) return i
@@ -38,12 +46,47 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
         return undefined
     }
 
-    const editTable = () => {
+    const resetAlert = () => {
+        setTimeout(() => {
+            setAlert([false, "", ""])
+        }, config.defaultAlertLength)
+    }
 
+    const saveTableChanges = () => {
+        if (tableBuffer === undefined) {
+            return
+        }
+
+        let nameElement: HTMLInputElement | HTMLElement | null = document.getElementById("edit-table-name")
+        if (nameElement === null || nameElement === undefined) {
+            setAlert([true, "ERROR", "Name error"])
+            resetAlert()
+            return
+        }
+
+        if (!(nameElement as HTMLInputElement).value) {
+            setAlert([true, "ERROR", "Please enter a table name before saving."])
+            resetAlert()
+            return
+        }
+        const name = (nameElement as HTMLInputElement).value
+        const newTable: Table = { ...tableBuffer, name: name }
+        const newTables: Table[] = []
+
+        for (let i of tables) {
+            if (i.name !== table) {
+                newTables.push(i)
+            } else {
+                newTables.push(newTable)
+            }
+        }
+
+        setTables([...newTables])
+        setShowEditTableDialog(undefined)
     }
 
     const addField = () => {
-        if (!tableBuffer) return
+        if (tableBuffer === undefined) return
         let field: Field;
 
         const regex = new RegExp("New Field [\d]{0,}")
@@ -66,8 +109,13 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
         if (field! === undefined) return
         setSelectedField(field)
     }
+    //@ts-ignore
+    const editFieldChanges = () => {
 
-    const editField = () => {
+    }
+
+    //@ts-ignore
+    const saveFieldChanges = () => {
 
     }
 
@@ -100,8 +148,9 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
                                         leaveFrom="opacity-100 scale-100"
                                         leaveTo="opacity-0 scale-95"
                                     >
-                                        <Dialog.Panel className="w-full max-w-[1500px] h-[700px] transform overflow-hidden rounded-2xl bg-hr p-6 text-left align-middle shadow-xl transition-all">
+                                        <Dialog.Panel className="w-full max-w-[1500px] h-[700px] transform overflow-y-auto rounded-2xl bg-hr p-6 text-left align-middle shadow-xl transition-all">
                                             <div>
+                                                <Alert show={alert[0]} severity={alert[1]} message={alert[2]} className='mb-[10px]' />
                                                 <Dialog.Title
                                                     as="h3"
                                                     className="text-lg font-medium leading-6 h-[24px]"
@@ -111,7 +160,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
                                                 <div className="mt-2">
                                                     <form onSubmit={(e) => {
                                                         e.preventDefault()
-                                                        editTable()
+                                                        saveTableChanges()
                                                         setShowEditTableDialog(undefined)
                                                     }}>
                                                         <input className="form-input" placeholder='Name' id="edit-table-name" defaultValue={table} />
@@ -120,7 +169,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
                                             </div>
                                             <div className='h-[2px] w-full bg-bg my-[10px]'></div>
                                             <div className='flex flex-row h-[calc(100%-236px)]'>
-                                                <div className='w-1/5 mr-[10px] overflow-y-scroll'>
+                                                <div className='w-1/5 mr-[10px] overflow-y-auto'>
                                                     <button
                                                         className='w-full bg-main hover:bg-maindark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-main hover:border-maindark fc flex-row'
                                                         onClick={() => {
@@ -137,7 +186,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
                                                                     key={index}
                                                                     className='w-full bg-bgdark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-bgdark hover:border-main'
                                                                     onClick={() => {
-                                                                        editField()
+                                                                        setSelectedField(val)
                                                                     }}
                                                                 >
                                                                     {val.name}
@@ -166,8 +215,8 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
                                                         className="button ml-[5px]"
                                                         onClick={(e) => {
                                                             e.preventDefault()
-                                                            editTable()
-                                                            setShowEditTableDialog(undefined)
+                                                            saveTableChanges()
+
                                                         }}
                                                     >
                                                         Save
@@ -179,7 +228,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables }: E
                                                     onClick={() => {
                                                         if (!deleteButtonPressed) setDeleteButtonPressed(true)
                                                         else {
-                                                            setTables((prevTables) => [...prevTables.filter((curTable) => curTable.name !== table)])
+                                                            removeTable(table)
                                                             setShowEditTableDialog(undefined)
                                                             setDeleteButtonPressed(false)
                                                         }

@@ -115,6 +115,10 @@ const App = () => {
         return true
     }
 
+    const removeTable = (name: string) => {
+        setTables((prevTables) => [...prevTables.filter((curTable) => curTable.name !== name)])
+    }
+
     const databaseSaveAs = () => {
         console.log("save as")
     }
@@ -136,8 +140,9 @@ const App = () => {
                 <EditTableDialog
                     setShowEditTableDialog={setShowEditTableDialog}
                     table={showEditTableDialog!}
-                    setTables={setTables}
                     tables={tables}
+                    setTables={setTables}
+                    removeTable={removeTable}
                 />
             }
 
