@@ -1,4 +1,4 @@
-import { Transition, Dialog } from '@headlessui/react'
+import { Transition, Dialog, Switch, RadioGroup } from '@headlessui/react'
 import React, { Fragment } from 'react'
 import { PlusIcon } from '@heroicons/react/20/solid'
 
@@ -20,6 +20,14 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
     const [tableBuffer, setTableBuffer] = React.useState<Table>()
     const [alert, setAlert] = React.useState<Alert_t>([false, "", ""])
 
+    const getTable = (name: string): Table | undefined => {
+        let returnTable = undefined
+        for (let i of tables) {
+            if (i.name === name) returnTable = i
+        }
+        return returnTable
+    }
+
     React.useEffect(() => {
         if (!table) return
         setTableBuffer(getTable(table))
@@ -32,19 +40,13 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
     }, [tableBuffer])
 
     React.useEffect(() => {
-        console.log(table)
+        console.log("table name: " + table)
     }, [table])
 
     React.useEffect(() => {
         console.log("changes")
+        //console.log(tables)
     }, [tables])
-
-    const getTable = (name: string): Table | undefined => {
-        for (let i of tables) {
-            if (i.name === name) return i
-        }
-        return undefined
-    }
 
     const resetAlert = () => {
         setTimeout(() => {
@@ -71,17 +73,17 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
         }
         const name = (nameElement as HTMLInputElement).value
         const newTable: Table = { ...tableBuffer, name: name }
-        const newTables: Table[] = []
+        const updatedTables: Table[] = []
 
         for (let i of tables) {
             if (i.name !== table) {
-                newTables.push(i)
+                updatedTables.push(i)
             } else {
-                newTables.push(newTable)
+                updatedTables.push(newTable)
             }
         }
 
-        setTables([...newTables])
+        setTables([...updatedTables])
         setShowEditTableDialog(undefined)
     }
 
@@ -90,14 +92,20 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
         let field: Field;
 
         const regex = new RegExp("New Field [\d]{0,}")
-        let count = 0
+        let max = 0
         for (let j of tableBuffer.fields) {
             if (regex.test(j.name)) {
-                count += 1
+                try {
+                    const temp = Number(j.name.split(" ")[2])
+                    max = temp > max ? temp : max
+                } catch { }
             }
         }
+
+        const name = `New Field ${max === 0 ? "" : max + 1}`
+
         field = {
-            name: `New Field ${count === 0 ? "" : count}`,
+            name: name,
             type: "INT",
             key: "NONE",
             notNull: false,
@@ -118,7 +126,6 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
     const saveFieldChanges = () => {
 
     }
-
     return (
         <div>
             {
@@ -161,7 +168,6 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                     <form onSubmit={(e) => {
                                                         e.preventDefault()
                                                         saveTableChanges()
-                                                        setShowEditTableDialog(undefined)
                                                     }}>
                                                         <input className="form-input" placeholder='Name' id="edit-table-name" defaultValue={table} />
                                                     </form>
@@ -198,7 +204,88 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                 <div className='w-[2px] h-full bg-bg'></div>
                                                 <div className='w-4/5 ml-[10px]'>
                                                     <div className='flex flex-row'>Edit Field <div className='text-secondary whitespace-pre'> {selectedField?.name}</div></div>
-
+                                                    <div className='fc'>
+                                                        <div className='border-solid border-[2px] bg-main bg-opacity-30 border-main m-[10px] ml-0 p-[5px] rounded-lg w-1/2 fc flex-col'>
+                                                            <div>
+                                                                Unique
+                                                            </div>
+                                                            <Switch
+                                                                checked={selectedField?.unique}
+                                                                onChange={() => {
+                                                                    setSelectedField((curField) => ({ ...curField!, unique: !curField?.unique }))
+                                                                }}
+                                                                className={`${selectedField?.unique ? 'bg-success' : 'bg-error'
+                                                                    } relative inline-flex h-6 w-11 items-center rounded-full`}
+                                                            >
+                                                                <span className="sr-only">Unique</span>
+                                                                <span
+                                                                    className={`${selectedField?.unique ? 'translate-x-6' : 'translate-x-1'
+                                                                        } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                                                                />
+                                                            </Switch>
+                                                        </div>
+                                                        <div className='border-solid border-[2px] bg-main bg-opacity-30 border-main m-[10px] mr-0 p-[5px] rounded-lg w-1/2 fc flex-col'>
+                                                            <div>
+                                                                Not Null
+                                                            </div>
+                                                            <Switch
+                                                                checked={selectedField?.notNull}
+                                                                onChange={() => {
+                                                                    setSelectedField((curField) => ({ ...curField!, notNull: !curField?.notNull }))
+                                                                }}
+                                                                className={`${selectedField?.notNull ? 'bg-success' : 'bg-error'
+                                                                    } relative inline-flex h-6 w-11 items-center rounded-full`}
+                                                            >
+                                                                <span className="sr-only">Not Null</span>
+                                                                <span
+                                                                    className={`${selectedField?.notNull ? 'translate-x-6' : 'translate-x-1'
+                                                                        } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                                                                />
+                                                            </Switch>
+                                                        </div>
+                                                    </div>
+                                                    <RadioGroup value={selectedField?.type} onChange={(data) => {
+                                                        setSelectedField((curField) => ({ ...curField!, type: data }))
+                                                    }}>
+                                                        <RadioGroup.Label>Type</RadioGroup.Label>
+                                                        <div className='fc'>
+                                                            <RadioGroup.Option value="INT" className="fc h-[50px] mr-[5px]" style={{ width: "calc(100%/7)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Int</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="FLOAT" className="fc h-[50px] mx-[5px]" style={{ width: "calc(100%/7)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Float</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="VARCHAR" className="fc h-[50px] mx-[5px]" style={{ width: "calc(100%/7)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Varchar</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="CHAR" className="fc h-[50px] mx-[5px]" style={{ width: "calc(100%/7)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Char</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="DATE" className="fc h-[50px] mx-[5px]" style={{ width: "calc(100%/7)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Date</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="TEXT" className="fc h-[50px] mx-[5px]" style={{ width: "calc(100%/7)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Text</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="BLOB" className="fc h-[50px] ml-[5px]" style={{ width: "calc(100%/7)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Blob</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                        </div>
+                                                    </RadioGroup>
                                                 </div>
                                             </div>
                                             <div className="mt-4 h-h-[108px]">
@@ -206,7 +293,9 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                     <button
                                                         type="button"
                                                         className="button bg-warning hover:bg-warningdark mr-[5px]"
-                                                        onClick={() => setShowEditTableDialog(undefined)}
+                                                        onClick={() => {
+                                                            setShowEditTableDialog(undefined)
+                                                        }}
                                                     >
                                                         Cancel
                                                     </button>

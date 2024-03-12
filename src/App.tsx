@@ -30,13 +30,14 @@ const App = () => {
     }, [])
 
     React.useEffect(() => {
+        console.log("?")
         if (tables.length === 0) return
         autosave()
     }, [tables])
 
     //React.useEffect(() => {
-    //    console.log(newTableError)
-    //}, [newTableError])
+    //    console.log(tables)
+    //}, [showEditTableDialog])
 
     const sortFields = (fields: Field[]) => {
         const keys = ["PRIMARY", "FOREIGN", "NONE"]
@@ -64,6 +65,7 @@ const App = () => {
             }, config.defaultAlertLength)
             return false
         }
+
         for (let i of tables) {
             if (i.name === name) {
                 setNewTableError([true, "ERROR", "There is already a table with this name."])
@@ -139,7 +141,7 @@ const App = () => {
             {showEditTableDialog &&
                 <EditTableDialog
                     setShowEditTableDialog={setShowEditTableDialog}
-                    table={showEditTableDialog!}
+                    table={showEditTableDialog}
                     tables={tables}
                     setTables={setTables}
                     removeTable={removeTable}
@@ -151,18 +153,18 @@ const App = () => {
                     tables.map((table, index) => {
                         return (
                             <Draggable
-                                handle='#name'
+                                handle='.handle'
                                 bounds="#canvas"
                                 key={index}
                                 defaultClassName='rounded-b-md overflow-hidden'
                             >
                                 <div className='w-[300px] inline-block bg-bgdark rounded-md'>
-                                    <div id="name" className='fc cursor-move bg-green-700 border-solid border-[2px] border-green-900 rounded-t-md'>
+                                    <div className='handle fc cursor-move bg-green-700 border-solid border-[2px] border-green-900 rounded-t-md'>
                                         {table.name}
                                         <button onClick={() => {
                                             setShowEditTableDialog(table.name)
                                         }}>
-                                            <AdjustmentsHorizontalIcon className='h-4 2-4 ml-[10px]' />
+                                            <AdjustmentsHorizontalIcon className='h-4 w-4 ml-[10px]' />
                                         </button>
                                     </div>
                                     <Attributes fields={table.fields} />
@@ -183,10 +185,10 @@ const App = () => {
                         <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New Table">
                             <PlusIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='action-button' onClick={() => databaseSaveAs()} title="Save Database">
+                        <button className='action-button' onClick={() => databaseSaveAs()} title="Save Database Schema">
                             <ArrowDownTrayIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='action-button' onClick={() => databaseLoad()} title="Load Database">
+                        <button className='action-button' onClick={() => databaseLoad()} title="Load Database Schema">
                             <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
                         </button>
                     </div>
