@@ -19,6 +19,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
     const [selectedField, setSelectedField] = React.useState<Field>()
     const [tableBuffer, setTableBuffer] = React.useState<Table>()
     const [alert, setAlert] = React.useState<Alert_t>([false, "", ""])
+    const [originalTables, setOriginalTables] = React.useState<Table[]>()
 
     const getTable = (name: string): Table | undefined => {
         let returnTable = undefined
@@ -30,23 +31,12 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
 
     React.useEffect(() => {
         if (!table) return
-        setTableBuffer(getTable(table))
+        const tableObj = getTable(table)
+        if (!tableObj) return
+        setTableBuffer(tableObj)
+        setSelectedField(tableObj.fields[0])
+        setOriginalTables(tables)
     }, [table])
-
-    React.useEffect(() => {
-        if (tableBuffer === undefined) return
-
-        setSelectedField(tableBuffer.fields[0])
-    }, [tableBuffer])
-
-    React.useEffect(() => {
-        console.log("table name: " + table)
-    }, [table])
-
-    React.useEffect(() => {
-        console.log("changes")
-        //console.log(tables)
-    }, [tables])
 
     const resetAlert = () => {
         setTimeout(() => {
@@ -54,8 +44,48 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
         }, config.defaultAlertLength)
     }
 
+    const handleFieldData = (performSwitch: boolean, field?: Field) => {
+        if (!selectedField || !tableBuffer) return
+
+        let nameElement: HTMLInputElement | HTMLElement | null = document.getElementById("edit-field-name")
+
+        if (nameElement === null || nameElement === undefined) {
+            setAlert([true, "ERROR", "Name error"])
+            resetAlert()
+            return
+        }
+
+        if (!(nameElement as HTMLInputElement).value) {
+            setAlert([true, "ERROR", "Please enter a field name before saving."])
+            resetAlert()
+            return
+        }
+
+        const name = (nameElement as HTMLInputElement).value
+
+        const updatedFields: Field[] = []
+
+        for (let i of tableBuffer.fields) {
+            if (i.name === selectedField.name) {
+                updatedFields.push({ ...selectedField, name: name })
+            } else {
+                updatedFields.push(i)
+            }
+        }
+
+        if (!performSwitch) return { fields: updatedFields as Field[] }
+        if (!field) return
+
+        if (nameElement) {
+            (nameElement as HTMLInputElement).value = field.name
+        }
+        setTableBuffer((prevTable) => ({ name: prevTable?.name as string, fields: updatedFields as Field[] }))
+        console.log({ name: name as string, fields: updatedFields as Field[] })
+        setSelectedField(field)
+    }
+
     const saveTableChanges = () => {
-        if (tableBuffer === undefined) {
+        if (tableBuffer === undefined || selectedField === undefined) {
             return
         }
 
@@ -71,8 +101,14 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
             resetAlert()
             return
         }
-        const name = (nameElement as HTMLInputElement).value
-        const newTable: Table = { ...tableBuffer, name: name }
+
+        const name: string = (nameElement as HTMLInputElement).value
+
+        const newestFieldData = handleFieldData(false)
+
+        if (!newestFieldData) return
+
+        const newTable: Table = { name: name, fields: newestFieldData.fields }
         const updatedTables: Table[] = []
 
         for (let i of tables) {
@@ -88,21 +124,25 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
     }
 
     const addField = () => {
-        if (tableBuffer === undefined) return
+        if (tableBuffer === undefined || selectedField === undefined) return
+
         let field: Field;
 
         const regex = new RegExp("New Field [\d]{0,}")
-        let max = 0
+        let max = -1
         for (let j of tableBuffer.fields) {
             if (regex.test(j.name)) {
+                console.log(j.name);
                 try {
                     const temp = Number(j.name.split(" ")[2])
                     max = temp > max ? temp : max
-                } catch { }
+                } catch {
+                    max = 0
+                }
             }
         }
 
-        const name = `New Field ${max === 0 ? "" : max + 1}`
+        const name = `New Field ${max === -1 ? "" : max + 1}`
 
         field = {
             name: name,
@@ -112,20 +152,24 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
             unique: false,
             default: ""
         }
-        tableBuffer.fields.push(field)
 
-        if (field! === undefined) return
+        const newestFieldData = handleFieldData(false)
+
+        if (!newestFieldData) return
+
+        setTableBuffer((prevTable) => ({ name: prevTable?.name as string, fields: [...(newestFieldData.fields as Field[]), field] as Field[] }))
+
+        let nameElement: HTMLInputElement | HTMLElement | null = document.getElementById("edit-field-name")
+        console.log(nameElement);
+        if (nameElement) {
+            (nameElement as HTMLInputElement).value = name
+        } else {
+            console.log("huh");
+        }
+
         setSelectedField(field)
     }
-    //@ts-ignore
-    const editFieldChanges = () => {
 
-    }
-
-    //@ts-ignore
-    const saveFieldChanges = () => {
-
-    }
     return (
         <div>
             {
@@ -190,9 +234,9 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                             return (
                                                                 <button
                                                                     key={index}
-                                                                    className='w-full bg-bgdark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-bgdark hover:border-main'
+                                                                    className={'w-full bg-bgdark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-bgdark hover:border-main ' + (selectedField?.name === val.name ? "bg-main border-main" : "")}
                                                                     onClick={() => {
-                                                                        setSelectedField(val)
+                                                                        handleFieldData(true, val)
                                                                     }}
                                                                 >
                                                                     {val.name}
@@ -204,13 +248,14 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                 <div className='w-[2px] h-full bg-bg'></div>
                                                 <div className='w-4/5 ml-[10px]'>
                                                     <div className='flex flex-row'>Edit Field <div className='text-secondary whitespace-pre'> {selectedField?.name}</div></div>
+                                                    <input className='form-input' type="text" defaultValue={selectedField?.name} id="edit-field-name"></input>
                                                     <div className='fc'>
                                                         <div className='border-solid border-[2px] bg-main bg-opacity-30 border-main m-[10px] ml-0 p-[5px] rounded-lg w-1/2 fc flex-col'>
                                                             <div>
                                                                 Unique
                                                             </div>
                                                             <Switch
-                                                                checked={selectedField?.unique}
+                                                                checked={selectedField ? selectedField?.unique : false}
                                                                 onChange={() => {
                                                                     setSelectedField((curField) => ({ ...curField!, unique: !curField?.unique }))
                                                                 }}
@@ -229,7 +274,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                 Not Null
                                                             </div>
                                                             <Switch
-                                                                checked={selectedField?.notNull}
+                                                                checked={selectedField ? selectedField?.notNull : false}
                                                                 onChange={() => {
                                                                     setSelectedField((curField) => ({ ...curField!, notNull: !curField?.notNull }))
                                                                 }}
@@ -244,7 +289,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                             </Switch>
                                                         </div>
                                                     </div>
-                                                    <RadioGroup value={selectedField?.type} onChange={(data) => {
+                                                    <RadioGroup value={selectedField ? selectedField?.type : "INT"} onChange={(data) => {
                                                         setSelectedField((curField) => ({ ...curField!, type: data }))
                                                     }}>
                                                         <RadioGroup.Label>Type</RadioGroup.Label>
@@ -295,6 +340,9 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                         className="button bg-warning hover:bg-warningdark mr-[5px]"
                                                         onClick={() => {
                                                             setShowEditTableDialog(undefined)
+                                                            console.log("cancelling")
+                                                            console.log(originalTables)
+                                                            setTables(originalTables!)
                                                         }}
                                                     >
                                                         Cancel

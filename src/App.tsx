@@ -31,6 +31,7 @@ const App = () => {
 
     React.useEffect(() => {
         console.log("?")
+        console.log(tables)
         if (tables.length === 0) return
         autosave()
     }, [tables])
