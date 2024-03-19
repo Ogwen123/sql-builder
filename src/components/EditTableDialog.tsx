@@ -1,6 +1,6 @@
-import { Transition, Dialog, Switch, RadioGroup } from '@headlessui/react'
+import { Transition, Dialog, Switch, RadioGroup, Listbox } from '@headlessui/react'
 import React, { Fragment } from 'react'
-import { PlusIcon } from '@heroicons/react/20/solid'
+import { PlusIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 
 import { Field, Table, Alert_t } from '../global/types'
 import Alert from './Alert'
@@ -37,6 +37,10 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
         setSelectedField(tableObj.fields[0])
         setOriginalTables(tables)
     }, [table])
+
+    React.useEffect(() => {
+        console.log(selectedField)
+    }, [selectedField])
 
     const resetAlert = () => {
         setTimeout(() => {
@@ -246,7 +250,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                     }
                                                 </div>
                                                 <div className='w-[2px] h-full bg-bg'></div>
-                                                <div className='w-4/5 ml-[10px]'>
+                                                <div className='w-4/5 ml-[10px] overflow-y-scroll'>
                                                     <div className='flex flex-row'>Edit Field <div className='text-secondary whitespace-pre'> {selectedField?.name}</div></div>
                                                     <input className='form-input' type="text" defaultValue={selectedField?.name} id="edit-field-name"></input>
                                                     <div className='fc'>
@@ -289,9 +293,39 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                             </Switch>
                                                         </div>
                                                     </div>
-                                                    <RadioGroup value={selectedField ? selectedField?.type : "INT"} onChange={(data) => {
-                                                        setSelectedField((curField) => ({ ...curField!, type: data }))
-                                                    }}>
+                                                    <RadioGroup
+                                                        value={selectedField ? selectedField?.key : "NONE"}
+                                                        onChange={(data) => {
+                                                            setSelectedField((curField) => ({ ...curField!, key: data }))
+                                                        }}
+                                                        className="my-[5px]"
+                                                    >
+                                                        <RadioGroup.Label>Key</RadioGroup.Label>
+                                                        <div className='fc'>
+                                                            <RadioGroup.Option value="PRIMARY" className="fc h-[50px] mr-[5px]" style={{ width: "calc(100%/3)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Primary</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="FOREIGN" className="fc h-[50px] mx-[5px]" style={{ width: "calc(100%/3)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>Foreign</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                            <RadioGroup.Option value="NONE" className="fc h-[50px] mx-[5px]" style={{ width: "calc(100%/3)" }}>
+                                                                {({ checked }) => (
+                                                                    <span className={checked ? 'bg-main bg-opacity-30 h-full w-full fc border-solid border-[2px] border-main rounded-lg' : ''}>None</span>
+                                                                )}
+                                                            </RadioGroup.Option>
+                                                        </div>
+                                                    </RadioGroup>
+                                                    <RadioGroup
+                                                        value={selectedField ? selectedField?.type : "INT"}
+                                                        onChange={(data) => {
+                                                            setSelectedField((curField) => ({ ...curField!, type: data }))
+                                                        }}
+                                                        className="my-[5px]"
+                                                    >
                                                         <RadioGroup.Label>Type</RadioGroup.Label>
                                                         <div className='fc'>
                                                             <RadioGroup.Option value="INT" className="fc h-[50px] mr-[5px]" style={{ width: "calc(100%/7)" }}>
@@ -331,6 +365,97 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                             </RadioGroup.Option>
                                                         </div>
                                                     </RadioGroup>
+                                                    {
+                                                        selectedField?.key === "FOREIGN" ?
+                                                            <div className='fc flex-row items-start'>
+                                                                <div
+                                                                    className='my-[10px]'
+                                                                    style={{ width: "calc(50% - 5px)" }}
+                                                                >
+                                                                    <Listbox
+                                                                        value={selectedField?.foreignKey?.table ? selectedField?.foreignKey?.table : ""}
+                                                                        onChange={(data) => {
+                                                                            console.log(data)
+                                                                            setSelectedField((curField) => ({ ...curField!, foreignKey: { table: data, field: curField?.foreignKey?.field! } }))
+                                                                        }}
+                                                                    >
+                                                                        <Listbox.Button className="w-full bg-bgdark p-[10px] rounded-lg fc mr-[5px] mb-[5px]">
+                                                                            {selectedField?.foreignKey?.table ? selectedField?.foreignKey?.table : "Select a table"}
+                                                                            <ChevronUpDownIcon className="h-5 w-5" />
+                                                                        </Listbox.Button>
+                                                                        <Listbox.Options className="bg-bgdark w-full p-[10px] rounded-lg">
+                                                                            {tables.map((tableObj) => (
+                                                                                <Listbox.Option
+                                                                                    key={tableObj.name}
+                                                                                    value={tableObj.name}
+                                                                                    disabled={tableObj.name === table}
+                                                                                    className={"rounded-lg p-[5px]" + (tableObj.name === table ? " text-gray-500" : " hover:bg-white hover:bg-opacity-10")}
+                                                                                >
+                                                                                    {({ selected }) => (
+                                                                                        <div className='flex items-center flex-row'>
+                                                                                            {selected && <CheckIcon className='h-5 w-5 mr-[10px]' />}
+                                                                                            {tableObj.name}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </Listbox.Option>
+                                                                            ))}
+                                                                        </Listbox.Options>
+                                                                    </Listbox>
+                                                                </div>
+
+
+                                                                <div
+                                                                    className='my-[10px]'
+                                                                    style={{ width: "calc(50% - 5px)" }}
+                                                                >
+                                                                    <Listbox
+                                                                        value={selectedField?.foreignKey?.field}
+                                                                        onChange={(data) => {
+                                                                            setSelectedField((curField) => ({ ...curField!, foreignKey: { table: curField?.foreignKey?.table!, field: data } }))
+                                                                        }}
+                                                                    >
+                                                                        <Listbox.Button
+                                                                            className="w-full bg-bgdark p-[10px] rounded-lg fc ml-[5px] mb-[5px]"
+                                                                        >
+                                                                            {selectedField?.foreignKey?.table ? selectedField?.foreignKey?.field ? selectedField?.foreignKey?.field : "Select a field" : "Select a table before seleceting a field"}
+                                                                            <ChevronUpDownIcon className="h-5 w-5" />
+                                                                        </Listbox.Button>
+                                                                        {
+                                                                            selectedField?.foreignKey?.table ?
+                                                                                <Listbox.Options className="bg-bgdark w-full p-[10px] rounded-lg ml-[5px]">
+                                                                                    {(getTable(selectedField?.foreignKey?.table) as Table).fields.map((field) => (
+                                                                                        <Listbox.Option
+                                                                                            key={field.name}
+                                                                                            value={field.name}
+                                                                                            className="rounded-lg p-[5px] hover:bg-white hover:bg-opacity-10"
+                                                                                        >
+                                                                                            {({ selected }) => (
+                                                                                                <div className='flex items-center flex-row'>
+                                                                                                    {selected && <CheckIcon className='h-5 w-5 mr-[10px]' />}
+                                                                                                    {field.name}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </Listbox.Option>
+                                                                                    ))}
+                                                                                </Listbox.Options>
+                                                                                :
+                                                                                <Listbox.Options className="bg-bgdark p-[10px] rounded-lg">
+                                                                                    <Listbox.Option
+                                                                                        value={""}
+                                                                                        disabled={true}
+                                                                                    >
+                                                                                        Select a table before selecting a field
+                                                                                    </Listbox.Option>
+                                                                                </Listbox.Options>
+                                                                        }
+                                                                    </Listbox>
+                                                                </div>
+                                                            </div>
+                                                            :
+                                                            <div></div>
+                                                    }
+                                                    <div className='text-xs text-hrdark'>A default value means all new fields that do not have a value explicitly set when adding a record will have this value.</div>
+                                                    <input type="text" className="form-input" placeholder='Default Value'></input>
                                                 </div>
                                             </div>
                                             <div className="mt-4 h-h-[108px]">
