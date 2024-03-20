@@ -1,10 +1,12 @@
 # sql builder
 
- - [ ] save database diagram to local storage
- - [ ] load database diagram to local storage
- - [ ] add field
- - [ ] edit and delete field
+ - [x] save database diagram to local storage
+ - [x] load database diagram to local storage
+ - [x] add field
+ - [x] delete field
+ - [x] edit field
  - [x] edit and delete table
+ - [ ] generating sql code
 
 ERRORS:
- - [ ] table edit cancel still saving but not actually saving
+ - [x] table edit cancel still saving but not actually saving

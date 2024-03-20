@@ -4,7 +4,8 @@ import {
     PlusIcon,
     ArrowDownTrayIcon,
     ArrowUpOnSquareIcon,
-    AdjustmentsHorizontalIcon
+    AdjustmentsHorizontalIcon,
+    Cog6ToothIcon
 } from '@heroicons/react/20/solid'
 import Draggable from 'react-draggable'
 
@@ -13,13 +14,20 @@ import Attributes from './components/Attributes'
 import NewTableDialog from './components/NewTableDialog'
 import EditTableDialog from './components/EditTableDialog'
 import config from "../config.json"
+import SaveAsDialog from './components/SaveAsDialog'
+import LoadDialog from './components/LoadDialog'
 
 const App = () => {
-
     const [tables, setTables] = React.useState<Table[]>([])
     const [showNewTableDialog, setShowNewTableDialog] = React.useState<boolean>(false)
-    const [newTableError, setNewTableError] = React.useState<Alert_t>([false, "", ""])
+    const [showSaveAsDialog, setShowSaveAsDialog] = React.useState<boolean>(false)
+    const [showLoadDialog, setShowLoadDialog] = React.useState<boolean>(false)
     const [showEditTableDialog, setShowEditTableDialog] = React.useState<string | undefined>()// put the name of the table to be edited
+
+    // errors are stored here not in the dialog component because the errors are generated in this component
+    const [newTableError, setNewTableError] = React.useState<Alert_t>([false, "", ""])
+    const [saveAsError, setSaveAsError] = React.useState<Alert_t>([false, "", ""])
+    const [loadError, setLoadError] = React.useState<Alert_t>([false, "", ""])
 
     React.useEffect(() => {
         let rawSaved = localStorage.getItem("database_autosave")
@@ -122,12 +130,37 @@ const App = () => {
         setTables((prevTables) => [...prevTables.filter((curTable) => curTable.name !== name)])
     }
 
-    const databaseSaveAs = () => {
-        console.log("save as")
+    const databaseSaveAs = (name: string): boolean => {
+        if (localStorage.getItem(name + ":saveddb") !== null) {
+            if (!saveAsError[2].endsWith("(ERR-001)")) {
+                setSaveAsError([true, "ERROR", "A database with this name already exists, click save again to overwrite it. (ERR-001)"])
+                return false
+            }
+        }
+
+        localStorage.setItem(name + ":saveddb", JSON.stringify(tables))
+
+        return true
     }
 
-    const databaseLoad = () => {
-        console.log("load")
+    const databaseLoad = (name: string): boolean => {
+        if (localStorage.getItem(name) === null) {
+            setLoadError([true, "ERROR", "No database is saved with this name."])
+            return false
+        }
+
+        setTables(JSON.parse(localStorage.getItem(name)!) as Table[])
+
+        return true
+    }
+
+    const savedDatabaseDelete = (name: string): boolean => {
+        if (localStorage.getItem(name) === null) {
+            setLoadError([true, "ERROR", "No database is saved with this name."])
+            return false
+        }
+        localStorage.removeItem(name)
+        return true
     }
 
     return (
@@ -139,6 +172,22 @@ const App = () => {
                 addTable={addTable}
                 error={newTableError}
             />
+
+            <SaveAsDialog
+                showSaveAsDialog={showSaveAsDialog}
+                setShowSaveAsDialog={setShowSaveAsDialog}
+                saveAs={databaseSaveAs}
+                error={saveAsError}
+            />
+
+            <LoadDialog
+                showLoadDialog={showLoadDialog}
+                setShowLoadDialog={setShowLoadDialog}
+                loadDatabase={databaseLoad}
+                deleteDatabase={savedDatabaseDelete}
+                error={loadError}
+            />
+
             {showEditTableDialog &&
                 <EditTableDialog
                     setShowEditTableDialog={setShowEditTableDialog}
@@ -183,14 +232,14 @@ const App = () => {
                         <button className='action-button' onClick={(e) => exportSQL(e)} title="Export as SQL">
                             <ArrowUpOnSquareIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New Table">
+                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New table">
                             <PlusIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='action-button' onClick={() => databaseSaveAs()} title="Save Database Schema">
+                        <button className='action-button' onClick={() => setShowSaveAsDialog(true)} title="Save database schema">
                             <ArrowDownTrayIcon className='h-9 w-9 hover:text-main' />
                         </button>
-                        <button className='action-button' onClick={() => databaseLoad()} title="Load Database Schema">
-                            <ArrowUpTrayIcon className='h-9 w-9 hover:text-main' />
+                        <button className='action-button' onClick={() => setShowLoadDialog(true)} title="Manage saved database schemas">
+                            <Cog6ToothIcon className='h-9 w-9 hover:text-main' />
                         </button>
                     </div>
                 </div>

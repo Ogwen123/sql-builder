@@ -1,6 +1,6 @@
 import { Transition, Dialog, Switch, RadioGroup, Listbox } from '@headlessui/react'
 import React, { Fragment } from 'react'
-import { PlusIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
+import { PlusIcon, CheckIcon, ChevronUpDownIcon, TrashIcon } from '@heroicons/react/20/solid'
 
 import { Field, Table, Alert_t } from '../global/types'
 import Alert from './Alert'
@@ -30,7 +30,12 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
     }
 
     React.useEffect(() => {
-        if (!table) return
+        if (!table) {
+            setSelectedField(undefined)
+            setTableBuffer(undefined)
+            setOriginalTables(undefined)
+            setDeleteButtonPressed(false)
+        }
         const tableObj = getTable(table)
         if (!tableObj) return
         setTableBuffer(tableObj)
@@ -38,17 +43,13 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
         setOriginalTables(tables)
     }, [table])
 
-    React.useEffect(() => {
-        console.log(selectedField)
-    }, [selectedField])
-
     const resetAlert = () => {
         setTimeout(() => {
             setAlert([false, "", ""])
         }, config.defaultAlertLength)
     }
 
-    const handleFieldData = (performSwitch: boolean, field?: Field) => {
+    const handleFieldData = (performSwitch: boolean, ignoreNameValidation: boolean = false, field?: Field) => {
         if (!selectedField || !tableBuffer) return
 
         let nameElement: HTMLInputElement | HTMLElement | null = document.getElementById("edit-field-name")
@@ -66,6 +67,16 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
         }
 
         const name = (nameElement as HTMLInputElement).value
+        if (!ignoreNameValidation) {
+            for (let i of tableBuffer.fields) {
+                if (name === i.name && name !== selectedField.name) {
+                    console.log(name)
+                    setAlert([true, "ERROR", "There is already a field with this name."])
+                    resetAlert()
+                    return
+                }
+            }
+        }
 
         const updatedFields: Field[] = []
 
@@ -84,7 +95,6 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
             (nameElement as HTMLInputElement).value = field.name
         }
         setTableBuffer((prevTable) => ({ name: prevTable?.name as string, fields: updatedFields as Field[] }))
-        console.log({ name: name as string, fields: updatedFields as Field[] })
         setSelectedField(field)
     }
 
@@ -174,6 +184,41 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
         setSelectedField(field)
     }
 
+    const deleteField = () => {
+        if (selectedField === undefined || tableBuffer === undefined) return
+        // get new field to show if currently on the one being deleted
+        if (tableBuffer.fields.length === 1) {
+            setAlert([true, "ERROR", "You must have atleast one field in a table."])
+            resetAlert()
+            return
+        }
+
+        let newField: Field | undefined = undefined
+        for (let i of tableBuffer.fields) {
+            if (i.name !== selectedField.name) {
+                newField = i
+                break
+            }
+        }
+
+        if (newField === undefined) {
+            setAlert([true, "ERROR", "Something went wrong when finding a field to switch to."])
+            return
+        }
+
+        const oldName = selectedField.name
+
+        handleFieldData(true, true, newField)
+
+        setTableBuffer((prevBuffer) => {
+            if (prevBuffer) {
+                const filteredFields = prevBuffer.fields?.filter((field) => field.name !== oldName) || [];
+                return { ...prevBuffer, fields: filteredFields };
+            }
+            return prevBuffer;
+        });
+    }
+
     return (
         <div>
             {
@@ -203,7 +248,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                         leaveFrom="opacity-100 scale-100"
                                         leaveTo="opacity-0 scale-95"
                                     >
-                                        <Dialog.Panel className="w-full max-w-[1500px] h-[700px] transform overflow-y-auto rounded-2xl bg-hr p-6 text-left align-middle shadow-xl transition-all">
+                                        <Dialog.Panel className="w-full max-w-[1600px] h-[825px] transform overflow-y-auto rounded-2xl bg-hr p-6 text-left align-middle shadow-xl transition-all">
                                             <div>
                                                 <Alert show={alert[0]} severity={alert[1]} message={alert[2]} className='mb-[10px]' />
                                                 <Dialog.Title
@@ -240,10 +285,11 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                     key={index}
                                                                     className={'w-full bg-bgdark rounded-lg p-[10px] my-[5px] scroll-y-auto border-solid border-[2px] border-bgdark hover:border-main ' + (selectedField?.name === val.name ? "bg-main border-main" : "")}
                                                                     onClick={() => {
-                                                                        handleFieldData(true, val)
+                                                                        handleFieldData(true, false, val)
                                                                     }}
                                                                 >
                                                                     {val.name}
+
                                                                 </button>
                                                             )
                                                         })
@@ -370,7 +416,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                             <div className='fc flex-row items-start'>
                                                                 <div
                                                                     className='my-[10px]'
-                                                                    style={{ width: "calc(50% - 5px)" }}
+                                                                    style={{ width: "50%" }}
                                                                 >
                                                                     <Listbox
                                                                         value={selectedField?.foreignKey?.table ? selectedField?.foreignKey?.table : ""}
@@ -379,7 +425,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                             setSelectedField((curField) => ({ ...curField!, foreignKey: { table: data, field: curField?.foreignKey?.field! } }))
                                                                         }}
                                                                     >
-                                                                        <Listbox.Button className="w-full bg-bgdark p-[10px] rounded-lg fc mr-[5px] mb-[5px]">
+                                                                        <Listbox.Button className="w-full bg-bgdark p-[10px] rounded-lg fc mr-[10px] mb-[5px]">
                                                                             {selectedField?.foreignKey?.table ? selectedField?.foreignKey?.table : "Select a table"}
                                                                             <ChevronUpDownIcon className="h-5 w-5" />
                                                                         </Listbox.Button>
@@ -405,8 +451,8 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
 
 
                                                                 <div
-                                                                    className='my-[10px]'
-                                                                    style={{ width: "calc(50% - 5px)" }}
+                                                                    className='my-[10px] mr-[10px]'
+                                                                    style={{ width: "50%" }}
                                                                 >
                                                                     <Listbox
                                                                         value={selectedField?.foreignKey?.field}
@@ -415,7 +461,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                         }}
                                                                     >
                                                                         <Listbox.Button
-                                                                            className="w-full bg-bgdark p-[10px] rounded-lg fc ml-[5px] mb-[5px]"
+                                                                            className="w-full bg-bgdark p-[10px] rounded-lg fc ml-[10px] mb-[5px]"
                                                                         >
                                                                             {selectedField?.foreignKey?.table ? selectedField?.foreignKey?.field ? selectedField?.foreignKey?.field : "Select a field" : "Select a table before seleceting a field"}
                                                                             <ChevronUpDownIcon className="h-5 w-5" />
@@ -454,8 +500,23 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                             :
                                                             <div></div>
                                                     }
-                                                    <div className='text-xs text-hrdark'>A default value means all new fields that do not have a value explicitly set when adding a record will have this value.</div>
+                                                    {
+                                                        ["CHAR", "VARCHAR"].includes(selectedField?.type!) ?
+                                                            <div>
+                                                                <input type="text" className='form-input' placeholder='Length'></input>
+                                                            </div>
+                                                            :
+                                                            <div></div>
+                                                    }
                                                     <input type="text" className="form-input" placeholder='Default Value'></input>
+                                                    <div className='text-xs text-hrdark'>A default value means all new fields that do not have a value explicitly set when adding a record will have this value.</div>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            deleteField()
+                                                        }}
+                                                        className='button bg-error hover:bg-errordark'
+                                                    >Delete Field</button>
                                                 </div>
                                             </div>
                                             <div className="mt-4 h-h-[108px]">
