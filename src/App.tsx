@@ -1,6 +1,5 @@
 import React from 'react'
 import {
-    ArrowUpTrayIcon,
     PlusIcon,
     ArrowDownTrayIcon,
     ArrowUpOnSquareIcon,
@@ -60,11 +59,6 @@ const App = () => {
 
     const autosave = () => {
         localStorage.setItem("database_autosave", JSON.stringify(tables))
-    }
-
-    const exportSQL = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e
-        console.log("export sql")
     }
 
     const addTable = (): boolean => {
