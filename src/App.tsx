@@ -16,12 +16,14 @@ import EditTableDialog from './components/EditTableDialog'
 import config from "../config.json"
 import SaveAsDialog from './components/SaveAsDialog'
 import LoadDialog from './components/LoadDialog'
+import SQLDialog from './components/SQLDialog'
 
 const App = () => {
     const [tables, setTables] = React.useState<Table[]>([])
     const [showNewTableDialog, setShowNewTableDialog] = React.useState<boolean>(false)
     const [showSaveAsDialog, setShowSaveAsDialog] = React.useState<boolean>(false)
     const [showLoadDialog, setShowLoadDialog] = React.useState<boolean>(false)
+    const [showSQLDialog, setShowSQLDialog] = React.useState<boolean>(false)
     const [showEditTableDialog, setShowEditTableDialog] = React.useState<string | undefined>()// put the name of the table to be edited
 
     // errors are stored here not in the dialog component because the errors are generated in this component
@@ -166,6 +168,12 @@ const App = () => {
     return (
         <div className=''>
 
+            <SQLDialog
+                showSQLDialog={showSQLDialog}
+                setShowSQLDialog={setShowSQLDialog}
+                tables={tables}
+            />
+
             <NewTableDialog
                 showNewTableDialog={showNewTableDialog}
                 setShowNewTableDialog={setShowNewTableDialog}
@@ -229,7 +237,7 @@ const App = () => {
                     style={{ height: "8%" }}
                 >
                     <div className='flex flex-row h-full w-full'>
-                        <button className='action-button' onClick={(e) => exportSQL(e)} title="Export as SQL">
+                        <button className='action-button' onClick={() => setShowSQLDialog(true)} title="Export as SQL">
                             <ArrowUpOnSquareIcon className='h-9 w-9 hover:text-main' />
                         </button>
                         <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New table">

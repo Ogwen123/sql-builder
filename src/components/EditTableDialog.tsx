@@ -1,6 +1,6 @@
 import { Transition, Dialog, Switch, RadioGroup, Listbox } from '@headlessui/react'
 import React, { Fragment } from 'react'
-import { PlusIcon, CheckIcon, ChevronUpDownIcon, TrashIcon } from '@heroicons/react/20/solid'
+import { PlusIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid'
 
 import { Field, Table, Alert_t } from '../global/types'
 import Alert from './Alert'
@@ -338,6 +338,28 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                 />
                                                             </Switch>
                                                         </div>
+                                                        {
+                                                            selectedField?.key === "PRIMARY" &&
+                                                            <div className='border-solid border-[2px] bg-main bg-opacity-30 border-main m-[10px] mr-0 p-[5px] rounded-lg w-1/2 fc flex-col'>
+                                                                <div>
+                                                                    Auto Increment
+                                                                </div>
+                                                                <Switch
+                                                                    checked={selectedField?.autoIncrement ? selectedField?.autoIncrement : false}
+                                                                    onChange={() => {
+                                                                        setSelectedField((curField) => ({ ...curField!, autoIncrement: (curField?.autoIncrement ? !curField?.autoIncrement : true) }))
+                                                                    }}
+                                                                    className={`${selectedField?.autoIncrement ? 'bg-success' : 'bg-error'
+                                                                        } relative inline-flex h-6 w-11 items-center rounded-full`}
+                                                                >
+                                                                    <span className="sr-only">Auto Increment</span>
+                                                                    <span
+                                                                        className={`${selectedField?.autoIncrement ? 'translate-x-6' : 'translate-x-1'
+                                                                            } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                                                                    />
+                                                                </Switch>
+                                                            </div>
+                                                        }
                                                     </div>
                                                     <RadioGroup
                                                         value={selectedField ? selectedField?.key : "NONE"}
@@ -503,12 +525,28 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                     {
                                                         ["CHAR", "VARCHAR"].includes(selectedField?.type!) ?
                                                             <div>
-                                                                <input type="text" className='form-input' placeholder='Length'></input>
+                                                                <input
+                                                                    type="number"
+                                                                    className='form-input'
+                                                                    placeholder='Length'
+                                                                    defaultValue={selectedField?.length !== undefined ? selectedField.length : 0}
+                                                                    onChange={(e) => {
+                                                                        setSelectedField((field) => ({ ...field!, length: parseInt(e.target.value) }))
+                                                                    }}
+                                                                ></input>
                                                             </div>
                                                             :
                                                             <div></div>
                                                     }
-                                                    <input type="text" className="form-input" placeholder='Default Value'></input>
+                                                    <input
+                                                        type="text"
+                                                        className="form-input"
+                                                        placeholder='Default Value'
+                                                        value={selectedField?.default}
+                                                        onChange={(e) => {
+                                                            setSelectedField((field) => ({ ...field!, default: e.target.value }))
+                                                        }}
+                                                    ></input>
                                                     <div className='text-xs text-hrdark'>A default value means all new fields that do not have a value explicitly set when adding a record will have this value.</div>
 
                                                     <button

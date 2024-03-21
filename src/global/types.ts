@@ -11,7 +11,8 @@ export type Field = {
     foreignKey?: ForeignKeyLink,
     notNull: boolean,
     unique: boolean,
-    default: string
+    default: string,
+    autoIncrement?: boolean
 }
 
 export type Table = {
