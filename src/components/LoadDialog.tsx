@@ -72,7 +72,7 @@ const LoadDialog = ({ showLoadDialog, setShowLoadDialog, loadDatabase, deleteDat
                                                     <div
                                                         key={index}
                                                         className='hover:bg-white hover:bg-opacity-10 rounded-lg p-[5px] flex flex-row items-center'
-                                                        onClick={(e) => {
+                                                        onClick={() => {
                                                             setName(databaseName)
                                                         }}
                                                     >
