@@ -12,7 +12,6 @@ export type Field = {
     notNull: boolean,
     unique: boolean,
     default: string,
-    autoIncrement?: boolean
 }
 
 export type Table = {

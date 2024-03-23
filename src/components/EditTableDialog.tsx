@@ -338,28 +338,6 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                 />
                                                             </Switch>
                                                         </div>
-                                                        {
-                                                            selectedField?.key === "PRIMARY" &&
-                                                            <div className='border-solid border-[2px] bg-main bg-opacity-30 border-main m-[10px] mr-0 p-[5px] rounded-lg w-1/2 fc flex-col'>
-                                                                <div>
-                                                                    Auto Increment
-                                                                </div>
-                                                                <Switch
-                                                                    checked={selectedField?.autoIncrement ? selectedField?.autoIncrement : false}
-                                                                    onChange={() => {
-                                                                        setSelectedField((curField) => ({ ...curField!, autoIncrement: (curField?.autoIncrement ? !curField?.autoIncrement : true) }))
-                                                                    }}
-                                                                    className={`${selectedField?.autoIncrement ? 'bg-success' : 'bg-error'
-                                                                        } relative inline-flex h-6 w-11 items-center rounded-full`}
-                                                                >
-                                                                    <span className="sr-only">Auto Increment</span>
-                                                                    <span
-                                                                        className={`${selectedField?.autoIncrement ? 'translate-x-6' : 'translate-x-1'
-                                                                            } inline-block h-4 w-4 transform rounded-full bg-white transition`}
-                                                                    />
-                                                                </Switch>
-                                                            </div>
-                                                        }
                                                     </div>
                                                     <RadioGroup
                                                         value={selectedField ? selectedField?.key : "NONE"}
@@ -485,12 +463,16 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                         <Listbox.Button
                                                                             className="w-full bg-bgdark p-[10px] rounded-lg fc ml-[10px] mb-[5px]"
                                                                         >
-                                                                            {selectedField?.foreignKey?.table ? selectedField?.foreignKey?.field ? selectedField?.foreignKey?.field : "Select a field" : "Select a table before seleceting a field"}
+                                                                            {selectedField?.foreignKey?.table ?
+                                                                                selectedField?.foreignKey?.field ?
+                                                                                    selectedField?.foreignKey?.field :
+                                                                                    "Select a field" :
+                                                                                "Select a table before seleceting a field"}
                                                                             <ChevronUpDownIcon className="h-5 w-5" />
                                                                         </Listbox.Button>
                                                                         {
                                                                             selectedField?.foreignKey?.table ?
-                                                                                <Listbox.Options className="bg-bgdark w-full p-[10px] rounded-lg ml-[5px]">
+                                                                                <Listbox.Options className="bg-bgdark w-full p-[10px] rounded-lg ml-[10px]">
                                                                                     {(getTable(selectedField?.foreignKey?.table) as Table).fields.map((field) => (
                                                                                         <Listbox.Option
                                                                                             key={field.name}
@@ -507,7 +489,7 @@ const EditTableDialog = ({ setShowEditTableDialog, table, tables, setTables, rem
                                                                                     ))}
                                                                                 </Listbox.Options>
                                                                                 :
-                                                                                <Listbox.Options className="bg-bgdark p-[10px] rounded-lg">
+                                                                                <Listbox.Options className="bg-bgdark w-full p-[10px] rounded-lg ml-[10px]">
                                                                                     <Listbox.Option
                                                                                         value={""}
                                                                                         disabled={true}
