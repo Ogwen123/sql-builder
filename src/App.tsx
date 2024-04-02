@@ -227,7 +227,7 @@ const App = () => {
                 }
                 <div
                     id="action-bar"
-                    className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 bg-bgdark rounded-lg p-[5px] border-solid border-[2px] border-main'
+                    className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 bg-bgdark rounded-md p-[5px] border-solid border-[2px] border-main'
                     style={{ height: "8%" }}
                 >
                     <div className='flex flex-row h-full w-full'>

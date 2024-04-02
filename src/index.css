@@ -3,34 +3,34 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "jetbrains";
-  src: url("/src/assets/JetBrainsMono-Regular.ttf");
+    font-family: "jetbrains";
+    src: url("/src/assets/JetBrainsMono-Regular.ttf");
 }
 
 body {
-  margin: 0;
-  font-family: "jetbrains", sans-serif;
-  background-color: #22272e;
-  color: white;
+    margin: 0;
+    font-family: "jetbrains", sans-serif;
+    background-color: #22272e;
+    color: white;
 }
 
 @layer components {
-  .fc {
-    @apply flex items-center justify-center
-  }
-  .form-input {
-    @apply rounded-lg p-[10px] w-full my-[5px] bg-bgdark border-solid border-2 border-bgdark focus:border-solid focus:border-2 focus:border-main focus:outline-none
-  }
-  .button {
-    @apply bg-main w-full rounded-lg p-[10px] my-[5px] hover:bg-maindark
-  }
-  .mh-all {
-    @apply min-h-[calc(100vh-10px)]
-  }
-  .mh-body {
-    @apply min-h-[calc(100vh-98px)]
-  }
-  .action-button {
-    @apply bg-bg rounded-lg h-full w-[60px] fc mr-[10px]
-  }
+    .fc {
+        @apply flex items-center justify-center
+    }
+    .form-input {
+        @apply rounded-md p-[10px] w-full my-[5px] bg-bgdark border-solid border-2 border-bgdark focus:border-solid focus:border-2 focus:border-main focus:outline-none
+    }
+    .button {
+        @apply bg-main w-full rounded-md p-[10px] my-[5px] hover:bg-maindark
+    }
+    .mh-all {
+        @apply min-h-[calc(100vh-10px)]
+    }
+    .mh-body {
+        @apply min-h-[calc(100vh-98px)]
+    }
+    .action-button {
+        @apply bg-bg rounded-md h-full w-[60px] fc mr-[10px]
+    }
 }

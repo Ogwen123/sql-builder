@@ -76,7 +76,7 @@ const SQLDialog = ({ showSQLDialog, setShowSQLDialog, tables }: SaveAsDialogProp
                                                     }}
                                                 />
                                             </div>
-                                            <div className='bg-bgdark p-[10px] rounded-lg whitespace-pre-line mt-[10px]'>
+                                            <div className='bg-bgdark p-[10px] rounded-md whitespace-pre-line mt-[10px]'>
                                                 {sql}
                                             </div>
                                         </div>
@@ -84,7 +84,7 @@ const SQLDialog = ({ showSQLDialog, setShowSQLDialog, tables }: SaveAsDialogProp
                                         errors ?
                                             <div>
                                                 <div className='text-xl text-error'>Errors</div>
-                                                <div className='bg-bgdark p-[10px] rounded-lg'>
+                                                <div className='bg-bgdark p-[10px] rounded-md'>
                                                     {
                                                         errors.map((error, index) => {
                                                             return (

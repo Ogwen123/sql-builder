@@ -17,7 +17,7 @@ const Alert = ({ message, show, severity, className }: AlertProps) => {
 
     if (show) {
         return (
-            <div className={`flex items-center bg-bgdark rounded-lg overflow-hidden ${className && className}`}>
+            <div className={`flex items-center bg-bgdark rounded-md overflow-hidden ${className && className}`}>
                 <div className={colour + " self-start fc h-[50px] w-[50px] p-[5px]"}>
                     {
                         severity === "ERROR" ?

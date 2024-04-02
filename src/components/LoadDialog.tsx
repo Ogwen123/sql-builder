@@ -65,13 +65,13 @@ const LoadDialog = ({ showLoadDialog, setShowLoadDialog, loadDatabase, deleteDat
                                     Load a database
                                 </Dialog.Title>
                                 <div className="mt-2">
-                                    <div className='bg-bgdark p-[10px] overflow-y-auto rounded-lg my-[5px]'>
+                                    <div className='bg-bgdark p-[10px] overflow-y-auto rounded-md my-[5px]'>
                                         {
                                             savedDatabases?.map((databaseName, index) => {
                                                 return (
                                                     <div
                                                         key={index}
-                                                        className='hover:bg-white hover:bg-opacity-10 rounded-lg p-[5px] flex flex-row items-center'
+                                                        className='hover:bg-white hover:bg-opacity-10 rounded-md p-[5px] flex flex-row items-center'
                                                         onClick={() => {
                                                             setName(databaseName)
                                                         }}
