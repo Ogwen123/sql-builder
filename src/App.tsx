@@ -19,6 +19,7 @@ import SQLDialog from './components/SQLDialog'
 
 const App = () => {
     const [tables, setTables] = React.useState<Table[]>([])
+    const [enabled, setEnabled] = React.useState<boolean>(true)
     const [showNewTableDialog, setShowNewTableDialog] = React.useState<boolean>(false)
     const [showSaveAsDialog, setShowSaveAsDialog] = React.useState<boolean>(false)
     const [showLoadDialog, setShowLoadDialog] = React.useState<boolean>(false)
@@ -36,6 +37,33 @@ const App = () => {
             const saved = JSON.parse(rawSaved) as Table[]
             setTables(saved)
         }
+    }, [])
+
+    React.useEffect(() => {
+        let url
+        if (location.href.includes("localhost") || location.href.includes("127.0.0.1")) {
+            url = "http://localhost:3002/api/services/check"
+        } else {
+            url = "https://admin-api.owen-services.eu.org/api/services/check"
+        }
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                id: "0d3533a1-415c-40d8-8e73-3b17f337fda1"
+            })
+        }).then((res) => {
+            if (res.ok) {
+                res.json().then((data) => {
+                    if (data.data.enabled !== undefined) {
+                        setEnabled(data.data.enabled)
+                    }
+                })
+            }
+        })
     }, [])
 
     React.useEffect(() => {
@@ -85,33 +113,9 @@ const App = () => {
             fields: sortFields(
                 [
                     {
-                        name: "test 1",
-                        type: "INT",
-                        key: "FOREIGN",
-                        notNull: false,
-                        unique: false,
-                        default: ""
-                    },
-                    {
-                        name: "test 2",
+                        name: "Placeholder",
                         type: "INT",
                         key: "PRIMARY",
-                        notNull: false,
-                        unique: false,
-                        default: ""
-                    },
-                    {
-                        name: "test 3",
-                        type: "INT",
-                        key: "NONE",
-                        notNull: false,
-                        unique: false,
-                        default: ""
-                    },
-                    {
-                        name: "test 4",
-                        type: "INT",
-                        key: "FOREIGN",
                         notNull: false,
                         unique: false,
                         default: ""
@@ -161,91 +165,99 @@ const App = () => {
 
     return (
         <div className=''>
+            {
+                enabled ?
+                    <div>
+                        <SQLDialog
+                            showSQLDialog={showSQLDialog}
+                            setShowSQLDialog={setShowSQLDialog}
+                            tables={tables}
+                        />
 
-            <SQLDialog
-                showSQLDialog={showSQLDialog}
-                setShowSQLDialog={setShowSQLDialog}
-                tables={tables}
-            />
+                        <NewTableDialog
+                            showNewTableDialog={showNewTableDialog}
+                            setShowNewTableDialog={setShowNewTableDialog}
+                            addTable={addTable}
+                            error={newTableError}
+                        />
 
-            <NewTableDialog
-                showNewTableDialog={showNewTableDialog}
-                setShowNewTableDialog={setShowNewTableDialog}
-                addTable={addTable}
-                error={newTableError}
-            />
+                        <SaveAsDialog
+                            showSaveAsDialog={showSaveAsDialog}
+                            setShowSaveAsDialog={setShowSaveAsDialog}
+                            saveAs={databaseSaveAs}
+                            error={saveAsError}
+                        />
 
-            <SaveAsDialog
-                showSaveAsDialog={showSaveAsDialog}
-                setShowSaveAsDialog={setShowSaveAsDialog}
-                saveAs={databaseSaveAs}
-                error={saveAsError}
-            />
+                        <LoadDialog
+                            showLoadDialog={showLoadDialog}
+                            setShowLoadDialog={setShowLoadDialog}
+                            loadDatabase={databaseLoad}
+                            deleteDatabase={savedDatabaseDelete}
+                            error={loadError}
+                        />
 
-            <LoadDialog
-                showLoadDialog={showLoadDialog}
-                setShowLoadDialog={setShowLoadDialog}
-                loadDatabase={databaseLoad}
-                deleteDatabase={savedDatabaseDelete}
-                error={loadError}
-            />
+                        {showEditTableDialog &&
+                            <EditTableDialog
+                                setShowEditTableDialog={setShowEditTableDialog}
+                                table={showEditTableDialog}
+                                tables={tables}
+                                setTables={setTables}
+                                removeTable={removeTable}
+                            />
+                        }
 
-            {showEditTableDialog &&
-                <EditTableDialog
-                    setShowEditTableDialog={setShowEditTableDialog}
-                    table={showEditTableDialog}
-                    tables={tables}
-                    setTables={setTables}
-                    removeTable={removeTable}
-                />
-            }
-
-            <div id="canvas" className='w-[100vw] min-h-[100vh]'>
-                {
-                    tables.map((table, index) => {
-                        return (
-                            <Draggable
-                                handle='.handle'
-                                bounds="#canvas"
-                                key={index}
-                                defaultClassName='rounded-b-md overflow-hidden'
+                        <div id="canvas" className='w-[100vw] min-h-[100vh]'>
+                            {
+                                tables.map((table, index) => {
+                                    return (
+                                        <Draggable
+                                            handle='.handle'
+                                            bounds="#canvas"
+                                            key={index}
+                                            defaultClassName='rounded-b-md overflow-hidden'
+                                        >
+                                            <div className='w-[300px] inline-block bg-bgdark rounded-md'>
+                                                <div className='handle fc cursor-move bg-green-700 border-solid border-[2px] border-green-900 rounded-t-md'>
+                                                    {table.name}
+                                                    <button onClick={() => {
+                                                        setShowEditTableDialog(table.name)
+                                                    }}>
+                                                        <AdjustmentsHorizontalIcon className='h-4 w-4 ml-[10px]' />
+                                                    </button>
+                                                </div>
+                                                <Attributes fields={table.fields} />
+                                            </div>
+                                        </Draggable>
+                                    )
+                                })
+                            }
+                            <div
+                                id="action-bar"
+                                className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 bg-bgdark rounded-md p-[5px] border-solid border-[2px] border-main'
+                                style={{ height: "8%" }}
                             >
-                                <div className='w-[300px] inline-block bg-bgdark rounded-md'>
-                                    <div className='handle fc cursor-move bg-green-700 border-solid border-[2px] border-green-900 rounded-t-md'>
-                                        {table.name}
-                                        <button onClick={() => {
-                                            setShowEditTableDialog(table.name)
-                                        }}>
-                                            <AdjustmentsHorizontalIcon className='h-4 w-4 ml-[10px]' />
-                                        </button>
-                                    </div>
-                                    <Attributes fields={table.fields} />
+                                <div className='flex flex-row h-full w-full'>
+                                    <button className='action-button' onClick={() => setShowSQLDialog(true)} title="Export as SQL">
+                                        <ArrowUpOnSquareIcon className='h-9 w-9 hover:text-main' />
+                                    </button>
+                                    <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New table">
+                                        <PlusIcon className='h-9 w-9 hover:text-main' />
+                                    </button>
+                                    <button className='action-button' onClick={() => setShowSaveAsDialog(true)} title="Save database schema">
+                                        <ArrowDownTrayIcon className='h-9 w-9 hover:text-main' />
+                                    </button>
+                                    <button className='action-button' onClick={() => setShowLoadDialog(true)} title="Manage saved database schemas">
+                                        <Cog6ToothIcon className='h-9 w-9 hover:text-main' />
+                                    </button>
                                 </div>
-                            </Draggable>
-                        )
-                    })
-                }
-                <div
-                    id="action-bar"
-                    className='z-10 my-[10px] bottom-[30px] left-[10%] absolute w-4/5 bg-bgdark rounded-md p-[5px] border-solid border-[2px] border-main'
-                    style={{ height: "8%" }}
-                >
-                    <div className='flex flex-row h-full w-full'>
-                        <button className='action-button' onClick={() => setShowSQLDialog(true)} title="Export as SQL">
-                            <ArrowUpOnSquareIcon className='h-9 w-9 hover:text-main' />
-                        </button>
-                        <button className='action-button' onClick={() => setShowNewTableDialog(true)} title="New table">
-                            <PlusIcon className='h-9 w-9 hover:text-main' />
-                        </button>
-                        <button className='action-button' onClick={() => setShowSaveAsDialog(true)} title="Save database schema">
-                            <ArrowDownTrayIcon className='h-9 w-9 hover:text-main' />
-                        </button>
-                        <button className='action-button' onClick={() => setShowLoadDialog(true)} title="Manage saved database schemas">
-                            <Cog6ToothIcon className='h-9 w-9 hover:text-main' />
-                        </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
+                    :
+                    <div className='text-xl w-full h-[200px] fc'>
+                        This site has been disabled by an administrator.
+                    </div>
+            }
         </div >
     )
 }
